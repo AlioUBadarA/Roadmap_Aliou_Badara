@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title> Gestion Financière Restarant </title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <style>
   :root {
     --cream: #FAF6EF;
@@ -403,12 +407,54 @@
   #auth-overlay { overflow-y: auto; padding: 1rem; align-items: flex-start; }
   @media (min-width: 500px) { #auth-overlay { align-items: center; padding: 0; } }
   .auth-box { margin: auto; }
+
+  /* Setup banner */
+  #setup-banner {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 99999;
+    background: #c0392b; color: #fff; padding: 0.75rem 1.25rem;
+    font-size: 0.85rem; text-align: center; font-family: 'DM Sans', sans-serif;
+    display: none;
+  }
+  #setup-banner a { color: #FFD700; font-weight: 700; }
+
+  /* Loading overlay */
+  #loading-overlay {
+    position: fixed; inset: 0; background: linear-gradient(135deg, #2C1A0E, #7A3B1E);
+    z-index: 99998; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 1.5rem;
+  }
+  #loading-overlay.hidden { display: none; }
+  .spinner {
+    width: 44px; height: 44px;
+    border: 3px solid rgba(255,255,255,0.2);
+    border-top-color: #D4A843;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading-overlay p { color: #E8DFD0; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; }
 </style>
 </head>
 <body>
 
+<!-- Bannière configuration Firebase -->
+<div id="setup-banner">
+  ⚠️ Firebase non configuré — les comptes ne sont pas partagés entre appareils.
+  <a href="#" onclick="document.getElementById('setup-banner').style.display='none'">✕</a>
+</div>
+
+<!-- Écran de chargement -->
+<div id="loading-overlay">
+  <svg viewBox="0 0 300 100" width="220" xmlns="http://www.w3.org/2000/svg">
+    <text x="150" y="55" font-family="Georgia,serif" font-size="32" font-style="italic" fill="#D4A843" font-weight="bold" text-anchor="middle">Keur Saveurs</text>
+    <text x="150" y="78" font-family="Arial,sans-serif" font-size="10" fill="#E8DFD0" text-anchor="middle" letter-spacing="3">GOÛT &amp; TERANGA</text>
+  </svg>
+  <div class="spinner"></div>
+  <p id="loading-msg">Connexion en cours…</p>
+</div>
+
 <!-- ========== AUTH OVERLAY ========== -->
-<div id="auth-overlay">
+<div id="auth-overlay" class="hidden">
   <div class="auth-box">
     <div class="auth-logo-wrap">
       <!-- Logo SVG Keur Saveurs -->
@@ -792,24 +838,11 @@
     </div>
   </div>
 
-  <!-- Synchronisation mobile -->
-  <div class="card">
-    <div class="card-title"><span class="icon">📱</span> Synchronisation multi-appareils</div>
-    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.6">
-      Les comptes sont stockés localement sur chaque appareil. Pour partager les comptes avec un téléphone ou un autre navigateur, exportez le code de synchronisation et collez-le sur l'autre appareil.
-    </p>
-    <div class="grid-2">
-      <div>
-        <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.5rem">📤 Exporter les comptes</div>
-        <button class="btn btn-secondary" onclick="exportAccounts()" style="margin-bottom:0.75rem;width:100%">Générer le code de sync</button>
-        <div class="sync-code" id="sync-export-code" style="display:none"></div>
-        <p style="font-size:0.72rem;color:var(--text-muted);margin-top:0.4rem">Copiez ce code et envoyez-le sur l'autre appareil</p>
-      </div>
-      <div>
-        <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.5rem">📥 Importer les comptes</div>
-        <textarea id="sync-import-code" placeholder="Collez le code de synchronisation ici…" style="width:100%;height:70px;padding:0.6rem;border:1.5px solid var(--border);border-radius:10px;font-family:monospace;font-size:0.75rem;resize:none;background:var(--cream)"></textarea>
-        <button class="btn btn-primary" onclick="importAccounts()" style="margin-top:0.5rem;width:100%">Importer</button>
-      </div>
+  <!-- Statut Firebase -->
+  <div class="card" id="firebase-status-card">
+    <div class="card-title"><span class="icon">🌐</span> Statut multi-appareils</div>
+    <div id="firebase-status-msg" style="font-size:0.875rem;line-height:1.7;color:var(--text-muted)">
+      Vérification…
     </div>
   </div>
 </div>
@@ -1372,10 +1405,75 @@ function printReport() {
   window.print();
 }
 
+// ========== FIREBASE CONFIG ==========
+// ⚠️  REMPLACEZ ces valeurs par celles de votre projet Firebase
+const firebaseConfig = {
+  apiKey:            "VOTRE_API_KEY",
+  authDomain:        "VOTRE_PROJET.firebaseapp.com",
+  databaseURL:       "https://VOTRE_PROJET-default-rtdb.firebaseio.com",
+  projectId:         "VOTRE_PROJET",
+  storageBucket:     "VOTRE_PROJET.appspot.com",
+  messagingSenderId: "VOTRE_SENDER_ID",
+  appId:             "VOTRE_APP_ID"
+};
+
+// Détecte si Firebase est configuré
+const FIREBASE_OK = firebaseConfig.apiKey !== "VOTRE_API_KEY";
+
+let _db   = null;
+let _auth = null;
+let usersCache = [];   // cache local pour éviter les appels async partout
+
+async function initFirebase() {
+  if (!FIREBASE_OK) {
+    document.getElementById('setup-banner').style.display = 'block';
+    return false;
+  }
+  try {
+    firebase.initializeApp(firebaseConfig);
+    _db   = firebase.database();
+    _auth = firebase.auth();
+    // Connexion anonyme pour satisfaire les règles Firebase
+    await _auth.signInAnonymously();
+    return true;
+  } catch(e) {
+    console.error('Firebase init error:', e);
+    document.getElementById('setup-banner').style.display = 'block';
+    return false;
+  }
+}
+
+async function fbGetUsers() {
+  if (!_db) return null;
+  const snap = await _db.ref('ks_users').once('value');
+  const val = snap.val();
+  return val ? Object.values(val) : [];
+}
+
+async function fbSaveUsers(users) {
+  if (!_db) return;
+  const obj = {};
+  users.forEach(u => { obj[u.username] = u; });
+  await _db.ref('ks_users').set(obj);
+}
+
+async function fbGetLogs() {
+  if (!_db) return null;
+  const snap = await _db.ref('ks_logs').orderByChild('ts').limitToLast(500).once('value');
+  const val = snap.val();
+  return val ? Object.values(val).reverse() : [];
+}
+
+async function fbPushLog(entry) {
+  if (!_db) return;
+  await _db.ref('ks_logs').push(entry);
+}
+
 // ========== SYSTÈME D'AUTHENTIFICATION ==========
 
-const AUTH_KEY    = 'ks_auth_users';
 const SESSION_KEY = 'ks_auth_session';
+// Fallback localStorage quand Firebase non configuré
+const AUTH_KEY    = 'ks_auth_users';
 const LOG_KEY     = 'ks_activity_log';
 
 // Hash simple (client-side only)
@@ -1389,11 +1487,17 @@ function simpleHash(str) {
   return hash.toString(36);
 }
 
-// ---- Utilisateurs ----
-function getUsers() {
-  try { return JSON.parse(localStorage.getItem(AUTH_KEY)) || []; } catch(e) { return []; }
+// ---- Utilisateurs (cache synchrone + Firebase/localStorage async) ----
+function getUsers() { return usersCache; }
+
+function saveUsers(users) {
+  usersCache = users;
+  if (FIREBASE_OK && _db) {
+    fbSaveUsers(users); // async, fire-and-forget
+  } else {
+    localStorage.setItem(AUTH_KEY, JSON.stringify(users));
+  }
 }
-function saveUsers(users) { localStorage.setItem(AUTH_KEY, JSON.stringify(users)); }
 
 // ---- Session ----
 function getSession() {
@@ -1405,47 +1509,47 @@ function saveSession(user) {
 function clearSession() { localStorage.removeItem(SESSION_KEY); }
 
 // ---- Logs ----
-function getLogs() {
-  try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch(e) { return []; }
-}
-function saveLogs(logs) { localStorage.setItem(LOG_KEY, JSON.stringify(logs)); }
-
 function logActivity(action, details) {
   const session = getSession();
-  const logs = getLogs();
-  logs.unshift({
+  const entry = {
     ts: new Date().toISOString(),
     username: session ? session.username : 'système',
     role: session ? session.role : '—',
     action,
     details: details || ''
-  });
-  // Conserver max 500 entrées
-  if (logs.length > 500) logs.splice(500);
-  saveLogs(logs);
+  };
+  if (FIREBASE_OK && _db) {
+    fbPushLog(entry); // async
+  } else {
+    // Fallback localStorage
+    try {
+      const logs = JSON.parse(localStorage.getItem(LOG_KEY)) || [];
+      logs.unshift(entry);
+      if (logs.length > 200) logs.splice(200);
+      localStorage.setItem(LOG_KEY, JSON.stringify(logs));
+    } catch(e) {}
+  }
 }
 
 // ---- Init superAdmin ----
-function initAuth() {
-  let users = getUsers();
-  if (users.length === 0) {
-    users = [{
+function ensureSuperAdmin() {
+  if (!usersCache.find(u => u.role === 'superAdmin')) {
+    usersCache.push({
       username: 'superadmin',
       password: simpleHash('Admin@2025'),
       role: 'superAdmin',
       created: new Date().toISOString()
-    }];
-    saveUsers(users);
+    });
+    saveUsers(usersCache);
   }
 }
 
 // ---- Login / Logout ----
 function doLogin(e) {
   e.preventDefault();
-  const username = document.getElementById('login-username').value.trim();
+  const username = document.getElementById('login-username').value.trim().toLowerCase();
   const password = document.getElementById('login-password').value;
-  const users = getUsers();
-  const user = users.find(u => u.username === username && u.password === simpleHash(password));
+  const user = usersCache.find(u => u.username === username && u.password === simpleHash(password));
 
   if (!user) {
     document.getElementById('auth-error').style.display = 'block';
@@ -1476,6 +1580,19 @@ function applySession(user) {
   if (user.role === 'superAdmin') {
     document.getElementById('tab-btn-users').style.display = '';
     document.getElementById('tab-btn-logs').style.display = '';
+    // Mettre à jour le statut Firebase dans l'onglet utilisateurs
+    setTimeout(() => {
+      const msg = document.getElementById('firebase-status-msg');
+      if (msg) {
+        if (FIREBASE_OK) {
+          msg.innerHTML = `<span style="color:var(--olive)">✅ <strong>Firebase connecté</strong> — Les comptes sont synchronisés sur tous les appareils en temps réel.</span><br><br>
+          <span style="color:var(--text-muted)">Tout compte créé ici est immédiatement disponible sur tous les téléphones et navigateurs.</span>`;
+        } else {
+          msg.innerHTML = `<span style="color:#c0392b">⚠️ <strong>Firebase non configuré</strong> — Les comptes sont uniquement locaux à cet appareil.</span><br><br>
+          <a href="https://console.firebase.google.com" target="_blank" style="color:var(--terracotta)">→ Configurer Firebase</a> pour activer la synchronisation multi-appareils.`;
+        }
+      }
+    }, 300);
   }
   if (user.role === 'admin') {
     document.getElementById('tab-btn-logs').style.display = '';
@@ -1651,9 +1768,18 @@ function filterLogs(type) {
   renderLogs();
 }
 
-function renderLogs() {
-  const allLogs = getLogs();
+async function renderLogs() {
   const wrap = document.getElementById('logs-list');
+  if (!wrap) return;
+  wrap.innerHTML = '<div class="empty-state"><div class="big">⏳</div>Chargement…</div>';
+
+  let allLogs = [];
+  if (FIREBASE_OK && _db) {
+    allLogs = await fbGetLogs() || [];
+  } else {
+    try { allLogs = JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch(e) {}
+  }
+  const wrap2 = document.getElementById('logs-list');
   if (!wrap) return;
 
   const filtered = _logFilter === 'all' ? allLogs : allLogs.filter(l => {
@@ -1682,7 +1808,7 @@ function renderLogs() {
     'paramètres': '⚙️ Paramètres modifiés',
   };
 
-  wrap.innerHTML = filtered.map(l => {
+  wrap2.innerHTML = filtered.map(l => {
     const dt = new Date(l.ts);
     const dateStr = dt.toLocaleDateString('fr-FR');
     const timeStr = dt.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
@@ -1698,27 +1824,55 @@ function renderLogs() {
 
 function clearLogs() {
   if (!confirm('Effacer tous les journaux ?')) return;
-  saveLogs([]);
+  if (FIREBASE_OK && _db) {
+    _db.ref('ks_logs').remove();
+  } else {
+    localStorage.removeItem(LOG_KEY);
+  }
   renderLogs();
   toast('🗑️ Journaux effacés');
 }
 
-// ========== INIT AUTH ==========
-(function() {
-  initAuth();
+// ========== INIT AUTH (async avec Firebase) ==========
+async function bootApp() {
+  const loadMsg = document.getElementById('loading-msg');
+
+  // 1. Initialiser Firebase
+  loadMsg.textContent = 'Connexion au serveur…';
+  const firebaseReady = await initFirebase();
+
+  // 2. Charger les utilisateurs
+  loadMsg.textContent = 'Chargement des comptes…';
+  if (firebaseReady) {
+    const fbUsers = await fbGetUsers();
+    usersCache = fbUsers || [];
+  } else {
+    try { usersCache = JSON.parse(localStorage.getItem(AUTH_KEY)) || []; } catch(e) { usersCache = []; }
+  }
+
+  // 3. Créer superAdmin si aucun compte n'existe
+  ensureSuperAdmin();
+
+  // 4. Vérifier la session locale
   const session = getSession();
+  document.getElementById('loading-overlay').classList.add('hidden');
+
   if (session) {
-    // Vérifier que la session est encore valide (compte toujours existant)
-    const users = getUsers();
-    const stillExists = users.find(u => u.username === session.username);
+    const stillExists = usersCache.find(u => u.username === session.username);
     if (stillExists) {
       applySession(session);
-      document.getElementById('auth-overlay').classList.add('hidden');
+      // auth-overlay reste hidden (déjà mis à hidden via classe initiale)
+      return;
     } else {
       clearSession();
     }
   }
-})();
+
+  // 5. Afficher le formulaire de connexion
+  document.getElementById('auth-overlay').classList.remove('hidden');
+}
+
+bootApp();
 
 </script>
 </body>
