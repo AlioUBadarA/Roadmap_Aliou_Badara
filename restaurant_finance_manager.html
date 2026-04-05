@@ -347,26 +347,62 @@
   .logo-img { height: 44px; width: auto; }
 
   /* ========== USER MANAGEMENT ========== */
-  .user-table-row { display: grid; grid-template-columns: 1fr 1fr 120px 80px; gap: 1rem; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid var(--sand); }
-  .user-table-row:last-child { border-bottom: none; }
-  .user-table-head { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; }
+  .user-card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 14px; padding: 1rem 1.25rem;
+    display: flex; flex-direction: column; gap: 0.6rem;
+    margin-bottom: 0.75rem;
+  }
+  .user-card-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+  .user-card-name { font-weight: 700; font-size: 1rem; color: var(--chocolate); }
+  .user-card-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .btn-sm { border: none; border-radius: 8px; padding: 0.38rem 0.75rem; font-size: 0.78rem; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 600; transition: all 0.2s; }
+  .btn-sm-danger { background: #fde8e8; color: #c0392b; }
+  .btn-sm-danger:hover { background: #c0392b; color: #fff; }
+  .btn-sm-edit { background: #e8f4fd; color: #1a6fa0; }
+  .btn-sm-edit:hover { background: #1a6fa0; color: #fff; }
   .role-select {
     padding: 0.4rem 0.6rem; border: 1.5px solid var(--border); border-radius: 8px;
     font-family: 'DM Sans', sans-serif; font-size: 0.82rem; background: var(--cream); color: var(--text);
     cursor: pointer;
   }
-  .btn-danger { background: #fde8e8; color: #c0392b; border: none; border-radius: 8px; padding: 0.4rem 0.75rem; font-size: 0.8rem; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 600; }
-  .btn-danger:hover { background: #c0392b; color: #fff; }
+  /* Log table */
+  .log-row { display: grid; grid-template-columns: 140px 100px 1fr 160px; gap: 0.75rem; padding: 0.6rem 1rem; border-bottom: 1px solid var(--sand); font-size: 0.82rem; align-items: center; }
+  .log-row:last-child { border-bottom: none; }
+  .log-head { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; background: var(--cream); border-radius: 8px; margin-bottom: 0.25rem; }
+  @media (max-width: 600px) {
+    .log-row { grid-template-columns: 1fr 1fr; font-size: 0.76rem; }
+    .log-row .log-date { grid-column: 1/-1; color: var(--text-muted); font-size: 0.7rem; }
+  }
+  /* Sync box */
+  .sync-code {
+    background: var(--cream); border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 0.75rem 1rem; font-family: monospace; font-size: 0.75rem;
+    word-break: break-all; color: var(--chocolate); max-height: 80px; overflow-y: auto;
+  }
+  /* Modal */
   .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-    z-index: 8888; display: flex; align-items: center; justify-content: center;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    z-index: 8888; display: flex; align-items: flex-end; justify-content: center;
+    padding: 0;
+  }
+  @media (min-width: 500px) {
+    .modal-overlay { align-items: center; padding: 1rem; }
   }
   .modal-overlay.hidden { display: none; }
   .modal-box {
-    background: #fff; border-radius: 20px; padding: 2rem;
-    width: 100%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    background: #fff; border-radius: 20px 20px 0 0; padding: 1.75rem 1.5rem;
+    width: 100%; max-width: 420px; box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
+    max-height: 90vh; overflow-y: auto;
   }
-  .modal-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--chocolate); margin-bottom: 1.25rem; }
+  @media (min-width: 500px) {
+    .modal-box { border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  }
+  .modal-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--chocolate); margin-bottom: 1.25rem; }
+  /* Auth mobile fix */
+  #auth-overlay { overflow-y: auto; padding: 1rem; align-items: flex-start; }
+  @media (min-width: 500px) { #auth-overlay { align-items: center; padding: 0; } }
+  .auth-box { margin: auto; }
 </style>
 </head>
 <body>
@@ -423,6 +459,26 @@
       <button type="submit" class="btn-auth">Se connecter →</button>
     </form>
     <div class="auth-footer">Keur Saveurs · Gestion Financière Privée</div>
+  </div>
+</div>
+
+<!-- Modal changer mot de passe -->
+<div class="modal-overlay hidden" id="modal-change-pwd">
+  <div class="modal-box">
+    <div class="modal-title">🔑 Changer le mot de passe</div>
+    <input type="hidden" id="pwd-target-username">
+    <div class="form-group">
+      <label>Nouveau mot de passe</label>
+      <input type="password" id="new-pwd" placeholder="Min. 6 caractères">
+    </div>
+    <div class="form-group">
+      <label>Confirmer le mot de passe</label>
+      <input type="password" id="confirm-pwd" placeholder="••••••••">
+    </div>
+    <div style="display:flex;gap:0.75rem;margin-top:0.5rem">
+      <button class="btn btn-primary" onclick="changePassword()" style="flex:1">Enregistrer</button>
+      <button class="btn btn-ghost" onclick="closeChangePwdModal()" style="flex:1">Annuler</button>
+    </div>
   </div>
 </div>
 
@@ -494,6 +550,7 @@
   <button class="nav-tab" onclick="showTab('roi')">💼 ROI & Prévisions</button>
   <button class="nav-tab" onclick="showTab('parametres')">⚙️ Paramètres</button>
   <button class="nav-tab" id="tab-btn-users" style="display:none" onclick="showTab('users')">👥 Utilisateurs</button>
+  <button class="nav-tab" id="tab-btn-logs" style="display:none" onclick="showTab('logs')">📋 Journaux</button>
 </nav>
 
 <main>
@@ -722,22 +779,63 @@
 <!-- ===== GESTION UTILISATEURS (superAdmin) ===== -->
 <div class="section" id="tab-users">
   <h1 class="section-title">Gestion des utilisateurs</h1>
-  <p class="section-sub">Créez et gérez les comptes d'accès à l'application</p>
+  <p class="section-sub">Créez, gérez et synchronisez les comptes d'accès</p>
 
   <div style="margin-bottom:1.5rem">
     <button class="btn btn-primary" onclick="openModal()">➕ Créer un compte</button>
   </div>
 
-  <div class="card">
+  <div class="card" style="margin-bottom:1.5rem">
     <div class="card-title"><span class="icon">👥</span> Comptes enregistrés</div>
-    <div class="user-table-row user-table-head" style="background:var(--cream);border-radius:8px;margin-bottom:0.5rem">
-      <div>Nom d'utilisateur</div>
-      <div>Rôle</div>
-      <div>Statut</div>
-      <div>Action</div>
-    </div>
     <div id="users-list">
       <div class="empty-state">Chargement…</div>
+    </div>
+  </div>
+
+  <!-- Synchronisation mobile -->
+  <div class="card">
+    <div class="card-title"><span class="icon">📱</span> Synchronisation multi-appareils</div>
+    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.6">
+      Les comptes sont stockés localement sur chaque appareil. Pour partager les comptes avec un téléphone ou un autre navigateur, exportez le code de synchronisation et collez-le sur l'autre appareil.
+    </p>
+    <div class="grid-2">
+      <div>
+        <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.5rem">📤 Exporter les comptes</div>
+        <button class="btn btn-secondary" onclick="exportAccounts()" style="margin-bottom:0.75rem;width:100%">Générer le code de sync</button>
+        <div class="sync-code" id="sync-export-code" style="display:none"></div>
+        <p style="font-size:0.72rem;color:var(--text-muted);margin-top:0.4rem">Copiez ce code et envoyez-le sur l'autre appareil</p>
+      </div>
+      <div>
+        <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:0.5rem">📥 Importer les comptes</div>
+        <textarea id="sync-import-code" placeholder="Collez le code de synchronisation ici…" style="width:100%;height:70px;padding:0.6rem;border:1.5px solid var(--border);border-radius:10px;font-family:monospace;font-size:0.75rem;resize:none;background:var(--cream)"></textarea>
+        <button class="btn btn-primary" onclick="importAccounts()" style="margin-top:0.5rem;width:100%">Importer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== JOURNAUX D'ACTIVITÉ (admin + superAdmin) ===== -->
+<div class="section" id="tab-logs">
+  <h1 class="section-title">Journaux d'activité</h1>
+  <p class="section-sub">Historique de toutes les actions effectuées sur l'application</p>
+
+  <div style="display:flex;gap:0.75rem;margin-bottom:1.5rem;flex-wrap:wrap">
+    <button class="btn btn-ghost" onclick="filterLogs('all')">Tout</button>
+    <button class="btn btn-ghost" onclick="filterLogs('login')">Connexions</button>
+    <button class="btn btn-ghost" onclick="filterLogs('data')">Saisies</button>
+    <button class="btn btn-ghost" onclick="filterLogs('admin')">Admin</button>
+    <button class="btn btn-ghost" onclick="clearLogs()" style="margin-left:auto;background:#fde8e8;color:#c0392b;border-color:#fde8e8">🗑️ Effacer les logs</button>
+  </div>
+
+  <div class="card">
+    <div class="log-row log-head">
+      <div>Date & Heure</div>
+      <div>Utilisateur</div>
+      <div>Action</div>
+      <div>Détails</div>
+    </div>
+    <div id="logs-list">
+      <div class="empty-state"><div class="big">📋</div>Aucune activité enregistrée</div>
     </div>
   </div>
 </div>
@@ -779,6 +877,7 @@ function showTab(id) {
   if(id==='roi') updateROI();
   if(id==='parametres') loadParams();
   if(id==='users') renderUsersList();
+  if(id==='logs') renderLogs();
 }
 
 function toast(msg, color='var(--olive)') {
@@ -887,6 +986,7 @@ function saveDayData() {
   saveState();
 
   toast('✅ Journée du ' + new Date(date).toLocaleDateString('fr-FR') + ' enregistrée !');
+  logActivity('saisie', `Date: ${date} | CA: ${fmtShort(ca)} FCFA | Dép: ${fmtShort(dep)} FCFA | Bén: ${fmtShort(benefice)} FCFA`);
   document.getElementById('input-ca').value = '';
   document.getElementById('input-dep').value = '';
   document.getElementById('input-note').value = '';
@@ -1091,6 +1191,7 @@ function deleteEntry(date) {
   saveState();
   updateHistory();
   updateDashboard();
+  logActivity('suppression', `Saisie du ${date} supprimée`);
   toast('🗑️ Saisie supprimée');
 }
 
@@ -1245,6 +1346,7 @@ function saveParams() {
   // Recalculate all allocations
   state.entries = state.entries.map(e => ({...e, alloc: getAlloc(e.benefice)}));
   saveState();
+  logActivity('paramètres', 'Paramètres de répartition mis à jour');
   toast('✅ Paramètres sauvegardés !');
   updateDashboard();
 }
@@ -1272,10 +1374,11 @@ function printReport() {
 
 // ========== SYSTÈME D'AUTHENTIFICATION ==========
 
-const AUTH_KEY = 'ks_auth_users';
+const AUTH_KEY    = 'ks_auth_users';
 const SESSION_KEY = 'ks_auth_session';
+const LOG_KEY     = 'ks_activity_log';
 
-// Hash simple (pour localStorage — NE PAS utiliser en prod sans bcrypt côté serveur)
+// Hash simple (client-side only)
 function simpleHash(str) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -1286,24 +1389,43 @@ function simpleHash(str) {
   return hash.toString(36);
 }
 
+// ---- Utilisateurs ----
 function getUsers() {
   try { return JSON.parse(localStorage.getItem(AUTH_KEY)) || []; } catch(e) { return []; }
 }
-function saveUsers(users) {
-  localStorage.setItem(AUTH_KEY, JSON.stringify(users));
-}
+function saveUsers(users) { localStorage.setItem(AUTH_KEY, JSON.stringify(users)); }
 
+// ---- Session ----
 function getSession() {
   try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch(e) { return null; }
 }
 function saveSession(user) {
   localStorage.setItem(SESSION_KEY, JSON.stringify({ username: user.username, role: user.role }));
 }
-function clearSession() {
-  localStorage.removeItem(SESSION_KEY);
+function clearSession() { localStorage.removeItem(SESSION_KEY); }
+
+// ---- Logs ----
+function getLogs() {
+  try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; } catch(e) { return []; }
+}
+function saveLogs(logs) { localStorage.setItem(LOG_KEY, JSON.stringify(logs)); }
+
+function logActivity(action, details) {
+  const session = getSession();
+  const logs = getLogs();
+  logs.unshift({
+    ts: new Date().toISOString(),
+    username: session ? session.username : 'système',
+    role: session ? session.role : '—',
+    action,
+    details: details || ''
+  });
+  // Conserver max 500 entrées
+  if (logs.length > 500) logs.splice(500);
+  saveLogs(logs);
 }
 
-// Initialise le compte superAdmin si aucun utilisateur n'existe
+// ---- Init superAdmin ----
 function initAuth() {
   let users = getUsers();
   if (users.length === 0) {
@@ -1317,6 +1439,7 @@ function initAuth() {
   }
 }
 
+// ---- Login / Logout ----
 function doLogin(e) {
   e.preventDefault();
   const username = document.getElementById('login-username').value.trim();
@@ -1327,17 +1450,20 @@ function doLogin(e) {
   if (!user) {
     document.getElementById('auth-error').style.display = 'block';
     document.getElementById('login-password').value = '';
+    logActivity('echec-connexion', `Tentative échouée pour "${username}"`);
     return;
   }
 
   document.getElementById('auth-error').style.display = 'none';
   saveSession(user);
+  logActivity('connexion', `Connexion réussie (rôle: ${user.role})`);
   applySession(user);
   document.getElementById('auth-overlay').classList.add('hidden');
 }
 
 function doLogout() {
   if (!confirm('Se déconnecter ?')) return;
+  logActivity('déconnexion', 'Session fermée');
   clearSession();
   location.reload();
 }
@@ -1347,12 +1473,13 @@ function applySession(user) {
   const roleLabels = { superAdmin: 'Super Admin', admin: 'Admin', user: 'Utilisateur' };
   document.getElementById('header-role').textContent = roleLabels[user.role] || user.role;
 
-  // Afficher l'onglet utilisateurs pour superAdmin
   if (user.role === 'superAdmin') {
     document.getElementById('tab-btn-users').style.display = '';
+    document.getElementById('tab-btn-logs').style.display = '';
   }
-
-  // Restreindre certains onglets selon le rôle
+  if (user.role === 'admin') {
+    document.getElementById('tab-btn-logs').style.display = '';
+  }
   if (user.role === 'user') {
     document.querySelectorAll('.nav-tab').forEach(btn => {
       if (btn.textContent.includes('Saisie') || btn.textContent.includes('Paramètres')) {
@@ -1362,7 +1489,8 @@ function applySession(user) {
   }
 }
 
-// ===== GESTION DES COMPTES (superAdmin) =====
+// ========== GESTION DES COMPTES ==========
+
 function renderUsersList() {
   const users = getUsers();
   const session = getSession();
@@ -1375,14 +1503,22 @@ function renderUsersList() {
   }
 
   const roleLabels = { superAdmin: '⭐ Super Admin', admin: '🔑 Admin', user: '👤 Utilisateur' };
+  const badgeClass = { superAdmin: 'badge-orange', admin: 'badge-green', user: 'badge-red' };
+  const isSelf = u => u.username === session?.username;
+
   wrap.innerHTML = users.map(u => `
-    <div class="user-table-row">
-      <div style="font-weight:600">${u.username}</div>
-      <div><span class="badge ${u.role==='superAdmin'?'badge-orange':u.role==='admin'?'badge-green':'badge-red'}">${roleLabels[u.role]||u.role}</span></div>
-      <div><span class="badge badge-green">Actif</span></div>
-      <div>
-        ${u.username !== session?.username ? `<button class="btn-danger" onclick="deleteUser('${u.username}')">Supprimer</button>` : '<span style="font-size:0.75rem;color:var(--text-muted)">Vous</span>'}
+    <div class="user-card">
+      <div class="user-card-header">
+        <div>
+          <div class="user-card-name">${u.username} ${isSelf(u) ? '<span style="font-size:0.72rem;color:var(--text-muted)">(vous)</span>' : ''}</div>
+          <span class="badge ${badgeClass[u.role]||'badge-red'}" style="margin-top:0.2rem">${roleLabels[u.role]||u.role}</span>
+        </div>
+        <div class="user-card-actions">
+          <button class="btn-sm btn-sm-edit" onclick="openChangePwdModal('${u.username}')">🔑 MDP</button>
+          ${!isSelf(u) ? `<button class="btn-sm btn-sm-danger" onclick="deleteUser('${u.username}')">Supprimer</button>` : ''}
+        </div>
       </div>
+      <div style="font-size:0.73rem;color:var(--text-muted)">Créé le ${new Date(u.created||Date.now()).toLocaleDateString('fr-FR')}</div>
     </div>
   `).join('');
 }
@@ -1393,29 +1529,26 @@ function openModal() {
   document.getElementById('new-password').value = '';
   document.getElementById('new-role').value = 'user';
 }
-function closeModal() {
-  document.getElementById('modal-create-user').classList.add('hidden');
-}
+function closeModal() { document.getElementById('modal-create-user').classList.add('hidden'); }
 
 function createUser() {
-  const username = document.getElementById('new-username').value.trim();
+  const username = document.getElementById('new-username').value.trim().toLowerCase();
   const password = document.getElementById('new-password').value;
-  const role = document.getElementById('new-role').value;
+  const role     = document.getElementById('new-role').value;
 
   if (!username || !password) { toast('⚠️ Remplissez tous les champs', '#c0392b'); return; }
-  if (username.length < 3) { toast('⚠️ Nom d\'utilisateur trop court (min. 3 caractères)', '#c0392b'); return; }
-  if (password.length < 6) { toast('⚠️ Mot de passe trop court (min. 6 caractères)', '#c0392b'); return; }
+  if (username.length < 3)    { toast('⚠️ Identifiant trop court (min. 3 caractères)', '#c0392b'); return; }
+  if (password.length < 6)    { toast('⚠️ Mot de passe trop court (min. 6 caractères)', '#c0392b'); return; }
 
   const users = getUsers();
-  if (users.find(u => u.username === username)) {
-    toast('⚠️ Ce nom d\'utilisateur existe déjà', '#c0392b'); return;
-  }
+  if (users.find(u => u.username === username)) { toast('⚠️ Cet identifiant existe déjà', '#c0392b'); return; }
 
   users.push({ username, password: simpleHash(password), role, created: new Date().toISOString() });
   saveUsers(users);
+  logActivity('création-compte', `Compte "${username}" créé (rôle: ${role})`);
   closeModal();
   renderUsersList();
-  toast(`✅ Compte "${username}" créé avec le rôle ${role}`);
+  toast(`✅ Compte "${username}" créé`);
 }
 
 function deleteUser(username) {
@@ -1423,17 +1556,167 @@ function deleteUser(username) {
   let users = getUsers();
   users = users.filter(u => u.username !== username);
   saveUsers(users);
+  logActivity('suppression-compte', `Compte "${username}" supprimé`);
   renderUsersList();
   toast(`🗑️ Compte "${username}" supprimé`);
 }
 
-// ===== INIT AUTH AU CHARGEMENT =====
+// ---- Changement de mot de passe ----
+function openChangePwdModal(username) {
+  document.getElementById('pwd-target-username').value = username;
+  document.getElementById('new-pwd').value = '';
+  document.getElementById('confirm-pwd').value = '';
+  document.getElementById('modal-change-pwd').classList.remove('hidden');
+}
+function closeChangePwdModal() { document.getElementById('modal-change-pwd').classList.add('hidden'); }
+
+function changePassword() {
+  const username = document.getElementById('pwd-target-username').value;
+  const newPwd   = document.getElementById('new-pwd').value;
+  const confirm  = document.getElementById('confirm-pwd').value;
+
+  if (newPwd.length < 6) { toast('⚠️ Mot de passe trop court (min. 6 caractères)', '#c0392b'); return; }
+  if (newPwd !== confirm) { toast('⚠️ Les mots de passe ne correspondent pas', '#c0392b'); return; }
+
+  const users = getUsers();
+  const idx = users.findIndex(u => u.username === username);
+  if (idx === -1) { toast('Utilisateur introuvable', '#c0392b'); return; }
+
+  users[idx].password = simpleHash(newPwd);
+  saveUsers(users);
+  logActivity('changement-mdp', `Mot de passe de "${username}" modifié`);
+
+  // Si l'utilisateur change son propre mdp, déconnecter pour forcer reconnexion
+  const session = getSession();
+  if (session && session.username === username) {
+    closeChangePwdModal();
+    toast('✅ Mot de passe mis à jour — reconnexion requise');
+    setTimeout(() => { clearSession(); location.reload(); }, 2000);
+    return;
+  }
+
+  closeChangePwdModal();
+  toast(`✅ Mot de passe de "${username}" mis à jour`);
+}
+
+// ---- Synchronisation multi-appareils ----
+function exportAccounts() {
+  const users = getUsers();
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify(users))));
+  const el = document.getElementById('sync-export-code');
+  el.textContent = code;
+  el.style.display = 'block';
+  // Copier dans le presse-papiers si possible
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(code).then(() => toast('✅ Code copié dans le presse-papiers'));
+  } else {
+    toast('📋 Code généré — copiez-le manuellement');
+  }
+  logActivity('export-comptes', `${users.length} compte(s) exporté(s)`);
+}
+
+function importAccounts() {
+  const code = document.getElementById('sync-import-code').value.trim();
+  if (!code) { toast('⚠️ Collez un code de synchronisation', '#c0392b'); return; }
+
+  let imported;
+  try {
+    imported = JSON.parse(decodeURIComponent(escape(atob(code))));
+    if (!Array.isArray(imported)) throw new Error('Format invalide');
+  } catch(e) {
+    toast('❌ Code invalide ou corrompu', '#c0392b'); return;
+  }
+
+  const existing = getUsers();
+  let added = 0;
+  imported.forEach(u => {
+    if (!existing.find(e => e.username === u.username)) {
+      existing.push(u);
+      added++;
+    }
+  });
+  saveUsers(existing);
+  logActivity('import-comptes', `${added} nouveau(x) compte(s) importé(s)`);
+  document.getElementById('sync-import-code').value = '';
+  renderUsersList();
+  toast(`✅ ${added} compte(s) importé(s) avec succès`);
+}
+
+// ========== JOURNAUX D'ACTIVITÉ ==========
+
+let _logFilter = 'all';
+
+function filterLogs(type) {
+  _logFilter = type;
+  renderLogs();
+}
+
+function renderLogs() {
+  const allLogs = getLogs();
+  const wrap = document.getElementById('logs-list');
+  if (!wrap) return;
+
+  const filtered = _logFilter === 'all' ? allLogs : allLogs.filter(l => {
+    if (_logFilter === 'login')  return ['connexion','déconnexion','echec-connexion'].includes(l.action);
+    if (_logFilter === 'data')   return ['saisie','suppression'].includes(l.action);
+    if (_logFilter === 'admin')  return ['création-compte','suppression-compte','changement-mdp','export-comptes','import-comptes','paramètres'].includes(l.action);
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    wrap.innerHTML = '<div class="empty-state"><div class="big">📋</div>Aucune activité dans cette catégorie</div>';
+    return;
+  }
+
+  const actionLabels = {
+    'connexion': '🟢 Connexion',
+    'déconnexion': '🔴 Déconnexion',
+    'echec-connexion': '⚠️ Échec connexion',
+    'saisie': '✏️ Saisie financière',
+    'suppression': '🗑️ Suppression saisie',
+    'création-compte': '➕ Création compte',
+    'suppression-compte': '❌ Suppression compte',
+    'changement-mdp': '🔑 Changement MDP',
+    'export-comptes': '📤 Export comptes',
+    'import-comptes': '📥 Import comptes',
+    'paramètres': '⚙️ Paramètres modifiés',
+  };
+
+  wrap.innerHTML = filtered.map(l => {
+    const dt = new Date(l.ts);
+    const dateStr = dt.toLocaleDateString('fr-FR');
+    const timeStr = dt.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+    return `
+      <div class="log-row">
+        <div class="log-date" style="color:var(--text-muted);font-size:0.78rem">${dateStr} ${timeStr}</div>
+        <div><strong>${l.username}</strong><br><span style="font-size:0.7rem;color:var(--text-muted)">${l.role}</span></div>
+        <div>${actionLabels[l.action] || l.action}</div>
+        <div style="font-size:0.77rem;color:var(--text-muted)">${l.details}</div>
+      </div>`;
+  }).join('');
+}
+
+function clearLogs() {
+  if (!confirm('Effacer tous les journaux ?')) return;
+  saveLogs([]);
+  renderLogs();
+  toast('🗑️ Journaux effacés');
+}
+
+// ========== INIT AUTH ==========
 (function() {
   initAuth();
   const session = getSession();
   if (session) {
-    applySession(session);
-    document.getElementById('auth-overlay').classList.add('hidden');
+    // Vérifier que la session est encore valide (compte toujours existant)
+    const users = getUsers();
+    const stillExists = users.find(u => u.username === session.username);
+    if (stillExists) {
+      applySession(session);
+      document.getElementById('auth-overlay').classList.add('hidden');
+    } else {
+      clearSession();
+    }
   }
 })();
 
