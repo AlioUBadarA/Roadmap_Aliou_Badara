@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title> Gestion Financière Restarant </title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FAF6EF;
+    --sand: #E8DFD0;
+    --terracotta: #C1714A;
+    --terracotta-dark: #9E5535;
+    --olive: #5C6B3A;
+    --olive-light: #7A8E4E;
+    --chocolate: #2C1A0E;
+    --gold: #D4A843;
+    --rose: #E8A0A0;
+    --text: #2C1A0E;
+    --text-muted: #7A6555;
+    --card-bg: #FFFFFF;
+    --border: #D6C9B8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    background-image: radial-gradient(ellipse at 20% 20%, rgba(193,113,74,0.08) 0%, transparent 50%),
+                      radial-gradient(ellipse at 80% 80%, rgba(92,107,58,0.06) 0%, transparent 50%);
+  }
+
+  /* HEADER */
+  header {
+    background: var(--chocolate);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 68px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(44,26,14,0.3);
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--gold);
+    letter-spacing: 0.02em;
+  }
+  .logo span { color: var(--cream); font-weight: 400; font-size: 1rem; margin-left: 0.5rem; }
+  .header-date {
+    color: var(--sand);
+    font-size: 0.85rem;
+    font-weight: 300;
+  }
+
+  /* NAV TABS */
+  .nav-tabs {
+    display: flex;
+    background: var(--chocolate);
+    padding: 0 2rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    gap: 0;
+    overflow-x: auto;
+  }
+  .nav-tab {
+    padding: 0.75rem 1.5rem;
+    color: var(--sand);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    letter-spacing: 0.03em;
+  }
+  .nav-tab:hover { color: var(--gold); }
+  .nav-tab.active { color: var(--gold); border-bottom-color: var(--terracotta); }
+
+  /* MAIN */
+  main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* SECTION */
+  .section { display: none; animation: fadeIn 0.3s ease; }
+  .section.active { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+
+  /* CARDS */
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.75rem;
+    box-shadow: 0 2px 12px rgba(44,26,14,0.06);
+  }
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    color: var(--chocolate);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .card-title .icon { font-size: 1.1rem; }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+  .span-2 { grid-column: span 2; }
+
+  /* STAT CARDS */
+  .stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 2px 8px rgba(44,26,14,0.05);
+  }
+  .stat-label { font-size: 0.78rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.4rem; }
+  .stat-value { font-family: 'Playfair Display', serif; font-size: 1.9rem; font-weight: 700; color: var(--chocolate); }
+  .stat-value.green { color: var(--olive); }
+  .stat-value.orange { color: var(--terracotta); }
+  .stat-value.gold { color: var(--gold); }
+  .stat-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+  /* FORM */
+  .form-group { margin-bottom: 1.25rem; }
+  label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+  input[type="number"], input[type="date"], input[type="text"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    color: var(--text);
+    background: var(--cream);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  input:focus { border-color: var(--terracotta); background: #fff; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.75rem;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    letter-spacing: 0.02em;
+  }
+  .btn-primary { background: var(--terracotta); color: #fff; }
+  .btn-primary:hover { background: var(--terracotta-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(193,113,74,0.35); }
+  .btn-secondary { background: var(--olive); color: #fff; }
+  .btn-secondary:hover { background: #4a5830; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--terracotta); border: 1.5px solid var(--terracotta); }
+  .btn-ghost:hover { background: var(--terracotta); color: #fff; }
+
+  /* ALLOCATION BARS */
+  .alloc-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.9rem;
+    gap: 1rem;
+  }
+  .alloc-label { font-size: 0.85rem; font-weight: 500; width: 180px; flex-shrink: 0; }
+  .alloc-bar-wrap { flex: 1; background: var(--sand); border-radius: 100px; height: 10px; overflow: hidden; }
+  .alloc-bar { height: 100%; border-radius: 100px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+  .alloc-amount { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 0.95rem; width: 100px; text-align: right; }
+  .alloc-pct { font-size: 0.75rem; color: var(--text-muted); width: 32px; text-align: right; }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  th { text-align: left; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); padding: 0.6rem 1rem; border-bottom: 2px solid var(--border); }
+  td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--sand); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--cream); }
+  .td-right { text-align: right; font-family: 'Playfair Display', serif; font-weight: 700; }
+  .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 100px; font-size: 0.72rem; font-weight: 600; }
+  .badge-green { background: #e6f4ea; color: var(--olive); }
+  .badge-orange { background: #fef0e8; color: var(--terracotta); }
+  .badge-red { background: #fde8e8; color: #c0392b; }
+
+  /* CHART BARS */
+  .chart-wrap { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding-top: 1rem; }
+  .chart-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .chart-bar { width: 100%; border-radius: 6px 6px 0 0; transition: height 0.5s ease; cursor: pointer; min-height: 4px; }
+  .chart-bar:hover { opacity: 0.8; }
+  .chart-label { font-size: 0.65rem; color: var(--text-muted); text-align: center; }
+  .chart-val { font-size: 0.68rem; font-weight: 600; color: var(--text-muted); }
+
+  /* PROGRESS ROI */
+  .roi-bar-wrap { background: var(--sand); border-radius: 100px; height: 14px; overflow: hidden; margin: 0.5rem 0; }
+  .roi-bar { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--terracotta), var(--gold)); transition: width 1s ease; }
+
+  /* PREDICT CARD */
+  .predict-timeline { display: flex; gap: 0; margin-top: 1rem; overflow-x: auto; padding-bottom: 0.5rem; }
+  .predict-month {
+    min-width: 68px;
+    text-align: center;
+    padding: 0.5rem 0.25rem;
+    border-right: 1px solid var(--sand);
+    cursor: default;
+  }
+  .predict-month:last-child { border-right: none; }
+  .predict-month .pm-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 500; }
+  .predict-month .pm-savings { font-size: 0.72rem; font-weight: 700; color: var(--olive); margin: 2px 0; }
+  .predict-month .pm-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--sand);
+    margin: 0 auto 3px;
+    border: 2px solid var(--border);
+    transition: background 0.3s;
+  }
+  .predict-month.reached .pm-dot { background: var(--gold); border-color: var(--gold); }
+  .predict-month.target .pm-dot { background: var(--terracotta); border-color: var(--terracotta); width: 14px; height: 14px; }
+
+  /* MESSAGE */
+  .toast {
+    position: fixed; bottom: 2rem; right: 2rem;
+    background: var(--olive); color: #fff;
+    padding: 0.85rem 1.5rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    z-index: 999;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.75rem;
+    color: var(--chocolate);
+    margin-bottom: 0.25rem;
+  }
+  .section-sub { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.75rem; }
+
+  .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+
+  .empty-state { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 0.9rem; }
+  .empty-state .big { font-size: 2.5rem; margin-bottom: 0.5rem; }
+
+  @media (max-width: 700px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .span-2 { grid-column: auto; }
+    .alloc-label { width: 120px; }
+  }
+
+  /* ========== AUTH OVERLAY ========== */
+  #auth-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: linear-gradient(135deg, #2C1A0E 0%, #4A2A14 40%, #7A3B1E 100%);
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh;
+  }
+  #auth-overlay.hidden { display: none; }
+
+  .auth-box {
+    background: #fff;
+    border-radius: 24px;
+    padding: 3rem 2.5rem;
+    width: 100%; max-width: 420px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+    text-align: center;
+    animation: slideUp 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes slideUp { from { opacity:0; transform:translateY(40px); } to { opacity:1; transform:none; } }
+
+  .auth-logo-wrap { margin-bottom: 1.75rem; }
+
+  .auth-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; color: var(--chocolate);
+    margin-bottom: 0.25rem;
+  }
+  .auth-sub { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 2rem; }
+
+  .auth-form .form-group { text-align: left; margin-bottom: 1.1rem; }
+  .auth-form input[type="text"],
+  .auth-form input[type="password"] {
+    width: 100%; padding: 0.85rem 1.1rem;
+    border: 1.5px solid var(--border); border-radius: 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 1rem;
+    color: var(--text); background: var(--cream);
+    transition: border-color 0.2s; outline: none;
+  }
+  .auth-form input:focus { border-color: var(--terracotta); background: #fff; }
+  .auth-error {
+    background: #fde8e8; color: #c0392b;
+    border-radius: 10px; padding: 0.65rem 1rem;
+    font-size: 0.83rem; margin-bottom: 1rem; display: none;
+  }
+  .btn-auth {
+    width: 100%; padding: 0.95rem;
+    background: linear-gradient(135deg, var(--terracotta), var(--terracotta-dark));
+    color: #fff; border: none; border-radius: 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em;
+    box-shadow: 0 4px 16px rgba(193,113,74,0.35);
+  }
+  .btn-auth:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(193,113,74,0.45); }
+  .auth-footer { margin-top: 1.5rem; font-size: 0.78rem; color: var(--text-muted); }
+
+  /* Header user info */
+  .header-user {
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .user-badge {
+    display: flex; align-items: center; gap: 0.5rem;
+    background: rgba(255,255,255,0.1); border-radius: 100px;
+    padding: 0.35rem 0.85rem; font-size: 0.8rem; color: var(--sand);
+  }
+  .user-badge .role-pill {
+    background: var(--gold); color: var(--chocolate);
+    border-radius: 100px; padding: 0.1rem 0.5rem;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  }
+  .btn-logout {
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+    color: var(--sand); border-radius: 8px; padding: 0.35rem 0.75rem;
+    font-size: 0.78rem; cursor: pointer; transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-logout:hover { background: rgba(255,255,255,0.22); color: #fff; }
+
+  /* Header logo image */
+  .logo-img { height: 44px; width: auto; }
+
+  /* ========== USER MANAGEMENT ========== */
+  .user-table-row { display: grid; grid-template-columns: 1fr 1fr 120px 80px; gap: 1rem; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid var(--sand); }
+  .user-table-row:last-child { border-bottom: none; }
+  .user-table-head { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; }
+  .role-select {
+    padding: 0.4rem 0.6rem; border: 1.5px solid var(--border); border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; background: var(--cream); color: var(--text);
+    cursor: pointer;
+  }
+  .btn-danger { background: #fde8e8; color: #c0392b; border: none; border-radius: 8px; padding: 0.4rem 0.75rem; font-size: 0.8rem; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 600; }
+  .btn-danger:hover { background: #c0392b; color: #fff; }
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 8888; display: flex; align-items: center; justify-content: center;
+  }
+  .modal-overlay.hidden { display: none; }
+  .modal-box {
+    background: #fff; border-radius: 20px; padding: 2rem;
+    width: 100%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .modal-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--chocolate); margin-bottom: 1.25rem; }
+</style>
+</head>
+<body>
+
+<!-- ========== AUTH OVERLAY ========== -->
+<div id="auth-overlay">
+  <div class="auth-box">
+    <div class="auth-logo-wrap">
+      <!-- Logo SVG Keur Saveurs -->
+      <svg viewBox="0 0 320 160" xmlns="http://www.w3.org/2000/svg" width="280" height="140">
+        <!-- Branches gauche -->
+        <g stroke="#7A3B1E" stroke-width="1.5" fill="none">
+          <path d="M90,42 Q75,35 60,28"/>
+          <path d="M83,45 Q72,38 65,32"/>
+          <path d="M78,50 Q68,45 62,42"/>
+          <!-- Feuilles gauche -->
+          <ellipse cx="60" cy="27" rx="7" ry="3.5" fill="#7A3B1E" stroke="none" transform="rotate(-30,60,27)"/>
+          <ellipse cx="65" cy="31" rx="5.5" ry="2.5" fill="#7A3B1E" stroke="none" transform="rotate(-20,65,31)"/>
+          <ellipse cx="62" cy="41" rx="5" ry="2.5" fill="#7A3B1E" stroke="none" transform="rotate(-10,62,41)"/>
+        </g>
+        <!-- Branches droite -->
+        <g stroke="#7A3B1E" stroke-width="1.5" fill="none">
+          <path d="M230,42 Q245,35 260,28"/>
+          <path d="M237,45 Q248,38 255,32"/>
+          <path d="M242,50 Q252,45 258,42"/>
+          <!-- Feuilles droite -->
+          <ellipse cx="260" cy="27" rx="7" ry="3.5" fill="#7A3B1E" stroke="none" transform="rotate(30,260,27)"/>
+          <ellipse cx="255" cy="31" rx="5.5" ry="2.5" fill="#7A3B1E" stroke="none" transform="rotate(20,255,31)"/>
+          <ellipse cx="258" cy="41" rx="5" ry="2.5" fill="#7A3B1E" stroke="none" transform="rotate(10,258,41)"/>
+        </g>
+        <!-- Toit de la case -->
+        <polygon points="160,8 100,50 220,50" fill="none" stroke="#7A3B1E" stroke-width="2"/>
+        <!-- Lignes du toit (chaume) -->
+        <line x1="160" y1="8" x2="130" y2="50" stroke="#7A3B1E" stroke-width="1" opacity="0.5"/>
+        <line x1="160" y1="8" x2="145" y2="50" stroke="#7A3B1E" stroke-width="1" opacity="0.5"/>
+        <line x1="160" y1="8" x2="175" y2="50" stroke="#7A3B1E" stroke-width="1" opacity="0.5"/>
+        <line x1="160" y1="8" x2="190" y2="50" stroke="#7A3B1E" stroke-width="1" opacity="0.5"/>
+        <!-- Sommet toit -->
+        <circle cx="160" cy="8" r="3" fill="#7A3B1E"/>
+        <!-- Murs de la case -->
+        <rect x="118" y="50" width="84" height="30" fill="none" stroke="#7A3B1E" stroke-width="2"/>
+        <!-- Porte arrondie -->
+        <path d="M150,80 L150,62 Q160,55 170,62 L170,80 Z" fill="none" stroke="#7A3B1E" stroke-width="1.8"/>
+        <!-- Texte "Keur" -->
+        <text x="55" y="110" font-family="Georgia, serif" font-size="38" font-style="italic" fill="#7A3B1E" font-weight="bold">Keur</text>
+        <!-- Texte "Saveurs" -->
+        <text x="130" y="112" font-family="Georgia, serif" font-size="38" font-style="italic" fill="#7A3B1E" font-weight="bold">Saveurs</text>
+        <!-- Ligne gauche -->
+        <line x1="30" y1="134" x2="95" y2="134" stroke="#7A3B1E" stroke-width="1.5"/>
+        <!-- GOÜT & TERANGA -->
+        <text x="160" y="138" font-family="Arial, sans-serif" font-size="13" fill="#7A3B1E" text-anchor="middle" letter-spacing="3" font-weight="600">GOÛ T  &amp;  TERANGA</text>
+        <!-- Ligne droite -->
+        <line x1="225" y1="134" x2="290" y2="134" stroke="#7A3B1E" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <div class="auth-title">Bienvenue</div>
+    <div class="auth-sub">Connectez-vous pour accéder à la gestion financière</div>
+    <div class="auth-error" id="auth-error">Identifiants incorrects. Veuillez réessayer.</div>
+    <form class="auth-form" onsubmit="doLogin(event)">
+      <div class="form-group">
+        <label>Nom d'utilisateur</label>
+        <input type="text" id="login-username" placeholder="Votre identifiant" autocomplete="username" required>
+      </div>
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn-auth">Se connecter →</button>
+    </form>
+    <div class="auth-footer">Keur Saveurs · Gestion Financière Privée</div>
+  </div>
+</div>
+
+<!-- Modal créer compte -->
+<div class="modal-overlay hidden" id="modal-create-user">
+  <div class="modal-box">
+    <div class="modal-title">➕ Créer un compte</div>
+    <div class="form-group">
+      <label>Nom d'utilisateur</label>
+      <input type="text" id="new-username" placeholder="identifiant">
+    </div>
+    <div class="form-group">
+      <label>Mot de passe</label>
+      <input type="password" id="new-password" placeholder="••••••••">
+    </div>
+    <div class="form-group">
+      <label>Rôle</label>
+      <select class="role-select" id="new-role" style="width:100%;padding:0.75rem 1rem;">
+        <option value="user">Utilisateur</option>
+        <option value="admin">Administrateur</option>
+        <option value="superAdmin">Super Admin</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:0.75rem;margin-top:0.5rem">
+      <button class="btn btn-primary" onclick="createUser()" style="flex:1">Créer</button>
+      <button class="btn btn-ghost" onclick="closeModal()" style="flex:1">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div style="display:flex;align-items:center;gap:0.75rem">
+    <!-- Logo SVG compact pour le header -->
+    <svg viewBox="0 0 180 52" xmlns="http://www.w3.org/2000/svg" height="44" width="auto">
+      <!-- Toit case -->
+      <polygon points="50,4 28,22 72,22" fill="none" stroke="#D4A843" stroke-width="1.5"/>
+      <line x1="50" y1="4" x2="50" y2="22" stroke="#D4A843" stroke-width="1" opacity="0.6"/>
+      <!-- Murs -->
+      <rect x="33" y="22" width="34" height="13" fill="none" stroke="#D4A843" stroke-width="1.5"/>
+      <!-- Porte -->
+      <path d="M44,35 L44,27 Q50,23 56,27 L56,35 Z" fill="none" stroke="#D4A843" stroke-width="1.3"/>
+      <!-- Feuilles -->
+      <ellipse cx="23" cy="15" rx="5" ry="2.2" fill="#D4A843" transform="rotate(-30,23,15)"/>
+      <ellipse cx="77" cy="15" rx="5" ry="2.2" fill="#D4A843" transform="rotate(30,77,15)"/>
+      <!-- Texte -->
+      <text x="90" y="26" font-family="Georgia,serif" font-size="18" font-style="italic" fill="#D4A843" font-weight="bold">Keur Saveurs</text>
+      <text x="90" y="42" font-family="Arial,sans-serif" font-size="8" fill="#E8DFD0" letter-spacing="2">GOÛT &amp; TERANGA</text>
+    </svg>
+  </div>
+  <div class="header-user">
+    <div class="user-badge">
+      <span id="header-username">—</span>
+      <span class="role-pill" id="header-role">—</span>
+    </div>
+    <div class="header-date" id="headerDate"></div>
+    <button class="btn-logout" onclick="doLogout()">Déconnexion</button>
+  </div>
+</header>
+
+<nav class="nav-tabs">
+  <button class="nav-tab active" onclick="showTab('dashboard')">📊 Tableau de bord</button>
+  <button class="nav-tab" onclick="showTab('saisie')">✏️ Saisie du jour</button>
+  <button class="nav-tab" onclick="showTab('rapports')">📋 Rapports</button>
+  <button class="nav-tab" onclick="showTab('roi')">💼 ROI & Prévisions</button>
+  <button class="nav-tab" onclick="showTab('parametres')">⚙️ Paramètres</button>
+  <button class="nav-tab" id="tab-btn-users" style="display:none" onclick="showTab('users')">👥 Utilisateurs</button>
+</nav>
+
+<main>
+
+<!-- ===== DASHBOARD ===== -->
+<div class="section active" id="tab-dashboard">
+  <h1 class="section-title">Tableau de bord</h1>
+  <p class="section-sub" id="dashboardSub">Vue d'ensemble de votre activité</p>
+
+  <div class="grid-4" style="margin-bottom:1.5rem">
+    <div class="stat-card">
+      <div class="stat-label">CA Aujourd'hui</div>
+      <div class="stat-value orange" id="d-ca-today">—</div>
+      <div class="stat-sub">Chiffre d'affaires</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Dépenses</div>
+      <div class="stat-value" id="d-dep-today">—</div>
+      <div class="stat-sub">Charges du jour</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Bénéfice Net</div>
+      <div class="stat-value green" id="d-ben-today">—</div>
+      <div class="stat-sub">CA – Dépenses</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Jours enregistrés</div>
+      <div class="stat-value gold" id="d-days-count">0</div>
+      <div class="stat-sub">Historique</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:1.5rem">
+    <!-- Allocation du jour -->
+    <div class="card">
+      <div class="card-title"><span class="icon">🥧</span> Répartition du bénéfice</div>
+      <div id="alloc-display">
+        <div class="empty-state"><div class="big">📝</div>Saisissez les données du jour pour voir la répartition</div>
+      </div>
+    </div>
+
+    <!-- Mini chart -->
+    <div class="card">
+      <div class="card-title"><span class="icon">📈</span> Évolution — 7 derniers jours</div>
+      <div id="mini-chart-wrap">
+        <div class="empty-state"><div class="big">📊</div>Aucune donnée à afficher</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cumuls -->
+  <div class="grid-3">
+    <div class="stat-card">
+      <div class="stat-label">CA ce mois</div>
+      <div class="stat-value orange" id="d-ca-month">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Bénéfice ce mois</div>
+      <div class="stat-value green" id="d-ben-month">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Épargne cumulée</div>
+      <div class="stat-value gold" id="d-epargne-total">—</div>
+      <div class="stat-sub">Vers nouveau restaurant</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SAISIE ===== -->
+<div class="section" id="tab-saisie">
+  <h1 class="section-title">Saisie du jour</h1>
+  <p class="section-sub">Entrez les données quotidiennes de votre restaurant</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><span class="icon">📝</span> Données financières</div>
+
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="input-date">
+      </div>
+      <div class="form-group">
+        <label>Chiffre d'affaires du jour (FCFA)</label>
+        <input type="number" id="input-ca" placeholder="0" min="0">
+      </div>
+      <div class="form-group">
+        <label>Dépenses du jour (FCFA)</label>
+        <input type="number" id="input-dep" placeholder="0" min="0">
+      </div>
+      <div class="form-group">
+        <label>Note (optionnel)</label>
+        <input type="text" id="input-note" placeholder="Ex: Marché spécial, fermeture mi-journée...">
+      </div>
+
+      <button class="btn btn-primary" onclick="saveDayData()">💾 Enregistrer la journée</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">🧮</span> Aperçu en temps réel</div>
+      <div id="preview-alloc">
+        <div class="empty-state"><div class="big">✏️</div>Remplissez le formulaire pour voir l'aperçu</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RAPPORTS ===== -->
+<div class="section" id="tab-rapports">
+  <h1 class="section-title">Rapports</h1>
+  <p class="section-sub">Analyses journalières, hebdomadaires et mensuelles</p>
+
+  <div style="display:flex; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+    <button class="btn btn-primary" onclick="showReport('day')">📅 Rapport du jour</button>
+    <button class="btn btn-ghost" onclick="showReport('week')">📆 Rapport semaine</button>
+    <button class="btn btn-ghost" onclick="showReport('month')">🗓️ Rapport mensuel</button>
+  </div>
+
+  <div id="report-output">
+    <div class="card">
+      <div class="empty-state"><div class="big">📋</div>Cliquez sur un rapport pour l'afficher</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📜</span> Historique des saisies</div>
+    <div id="history-table-wrap">
+      <div class="empty-state"><div class="big">📖</div>Aucune donnée enregistrée</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ROI & PREVISIONS ===== -->
+<div class="section" id="tab-roi">
+  <h1 class="section-title">ROI & Prévisions</h1>
+  <p class="section-sub">Suivi du retour sur investissement et plan d'expansion</p>
+
+  <div class="grid-2" style="margin-bottom:1.5rem">
+    <div class="card">
+      <div class="card-title"><span class="icon">💰</span> Investissement initial</div>
+      <div class="form-group">
+        <label>Montant investi au départ (FCFA)</label>
+        <input type="number" id="input-invest" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>Date d'ouverture</label>
+        <input type="date" id="input-open-date">
+      </div>
+      <button class="btn btn-secondary" onclick="saveInvestment()">💾 Enregistrer</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">📊</span> ROI actuel</div>
+      <div id="roi-display">
+        <div class="empty-state"><div class="big">💼</div>Renseignez l'investissement initial</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🏗️</span> Prévision — Ouverture 2ème restaurant en 12 mois</div>
+    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+      Basé sur votre épargne (20% du bénéfice net), projection de l'accumulation du capital nécessaire pour un 2ème restaurant avec les mêmes paramètres.
+    </p>
+    <div id="predict-display">
+      <div class="empty-state"><div class="big">🔮</div>Données insuffisantes pour la prévision</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PARAMETRES ===== -->
+<div class="section" id="tab-parametres">
+  <h1 class="section-title">Paramètres</h1>
+  <p class="section-sub">Configuration de la répartition des bénéfices</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><span class="icon">🎯</span> Répartition du bénéfice net</div>
+      <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:1.25rem;">Total doit être égal à 100%</p>
+
+      <div class="form-group">
+        <label>💳 Remboursement dettes (%)</label>
+        <input type="number" id="p-dette" value="40" min="0" max="100">
+      </div>
+      <div class="form-group">
+        <label>🏠 Location (%)</label>
+        <input type="number" id="p-loyer" value="10" min="0" max="100">
+      </div>
+      <div class="form-group">
+        <label>👩‍🍳 Salaires (%)</label>
+        <input type="number" id="p-salaire" value="10" min="0" max="100">
+      </div>
+      <div class="form-group">
+        <label>🏦 Épargne (%)</label>
+        <input type="number" id="p-epargne" value="20" min="0" max="100">
+      </div>
+      <div class="form-group">
+        <label>🛒 Besoins personnels (%)</label>
+        <input type="number" id="p-perso" value="20" min="0" max="100">
+      </div>
+
+      <div id="pct-check" style="font-size:0.85rem; margin-bottom:1rem;"></div>
+      <button class="btn btn-primary" onclick="saveParams()">💾 Sauvegarder</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">ℹ️</span> À propos de l'application</div>
+      <p style="font-size:0.875rem; line-height:1.7; color:var(--text-muted);">
+        <strong style="color:var(--chocolate)">BistroBiz</strong> est conçue pour deux entrepreneures gérant un petit restaurant.<br><br>
+        ✅ Saisie rapide (2 champs seulement)<br>
+        ✅ Répartition automatique du bénéfice<br>
+        ✅ Rapports quotidien / hebdo / mensuel<br>
+        ✅ Suivi ROI & prévision expansion<br>
+        ✅ Données sauvegardées localement<br><br>
+        <em>Toutes les données sont stockées dans votre navigateur.</em>
+      </p>
+
+      <div class="divider"></div>
+      <button class="btn btn-ghost" onclick="exportData()" style="margin-right:0.5rem">📤 Exporter JSON</button>
+      <button class="btn" style="background:#fde8e8; color:#c0392b;" onclick="if(confirm('Effacer TOUTES les données ?')) clearData()">🗑️ Réinitialiser</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== GESTION UTILISATEURS (superAdmin) ===== -->
+<div class="section" id="tab-users">
+  <h1 class="section-title">Gestion des utilisateurs</h1>
+  <p class="section-sub">Créez et gérez les comptes d'accès à l'application</p>
+
+  <div style="margin-bottom:1.5rem">
+    <button class="btn btn-primary" onclick="openModal()">➕ Créer un compte</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">👥</span> Comptes enregistrés</div>
+    <div class="user-table-row user-table-head" style="background:var(--cream);border-radius:8px;margin-bottom:0.5rem">
+      <div>Nom d'utilisateur</div>
+      <div>Rôle</div>
+      <div>Statut</div>
+      <div>Action</div>
+    </div>
+    <div id="users-list">
+      <div class="empty-state">Chargement…</div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== STATE =====
+let state = {
+  entries: [],        // [{date, ca, depenses, benefice, note}]
+  params: { dette:40, loyer:10, salaire:10, epargne:20, perso:20 },
+  investment: { montant: 0, date: '' }
+};
+
+function loadState() {
+  try {
+    const s = localStorage.getItem('bistrobiz_v1');
+    if (s) state = {...state, ...JSON.parse(s)};
+  } catch(e) {}
+}
+function saveState() {
+  localStorage.setItem('bistrobiz_v1', JSON.stringify(state));
+}
+
+// ===== UTILS =====
+const fmt = (n) => Math.round(n).toLocaleString('fr-FR') + ' FCFA';
+const fmtShort = (n) => Math.round(n).toLocaleString('fr-FR');
+const today = () => new Date().toISOString().split('T')[0];
+
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if(id==='dashboard') updateDashboard();
+  if(id==='rapports') { updateHistory(); showReport('day'); }
+  if(id==='roi') updateROI();
+  if(id==='parametres') loadParams();
+  if(id==='users') renderUsersList();
+}
+
+function toast(msg, color='var(--olive)') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = color;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function getAlloc(benefice) {
+  const p = state.params;
+  return {
+    dette:    benefice * p.dette / 100,
+    loyer:    benefice * p.loyer / 100,
+    salaire:  benefice * p.salaire / 100,
+    epargne:  benefice * p.epargne / 100,
+    perso:    benefice * p.perso / 100,
+  };
+}
+
+function allocHTML(benefice, mini=false) {
+  if(benefice <= 0) return `<p style="color:var(--text-muted);font-size:0.875rem">⚠️ Bénéfice nul ou négatif — pas de répartition possible.</p>`;
+  const a = getAlloc(benefice);
+  const p = state.params;
+  const rows = [
+    { label:'💳 Remb. dettes', pct: p.dette, amt: a.dette, color: '#E8A0A0' },
+    { label:'🏠 Location',     pct: p.loyer,  amt: a.loyer,  color: '#F4C882' },
+    { label:'👩‍🍳 Salaires',    pct: p.salaire,amt: a.salaire,color: '#A0C4E8' },
+    { label:'🏦 Épargne',      pct: p.epargne,amt: a.epargne,color: '#90C99A' },
+    { label:'🛒 Besoins perso',pct: p.perso,  amt: a.perso,  color: '#C4A0E8' },
+  ];
+  return rows.map(r => `
+    <div class="alloc-row">
+      <div class="alloc-label">${r.label}</div>
+      <div class="alloc-bar-wrap"><div class="alloc-bar" style="width:${r.pct}%;background:${r.color}"></div></div>
+      <div class="alloc-pct">${r.pct}%</div>
+      <div class="alloc-amount" style="color:${r.color.replace('E8','B0')}">${fmtShort(r.amt)}</div>
+    </div>
+  `).join('');
+}
+
+// ===== SAISIE =====
+document.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  document.getElementById('input-date').value = today();
+  document.getElementById('headerDate').textContent = new Date().toLocaleDateString('fr-FR', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  document.getElementById('dashboardSub').textContent = 'Bonjour ! Vue d\'ensemble de votre activité — ' + new Date().toLocaleDateString('fr-FR');
+  updateDashboard();
+  loadParams();
+
+  // live preview
+  ['input-ca','input-dep'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updatePreview);
+  });
+
+  // param check
+  ['p-dette','p-loyer','p-salaire','p-epargne','p-perso'].forEach(id => {
+    document.getElementById(id).addEventListener('input', checkParams);
+  });
+
+  // Load investment fields
+  if(state.investment.montant) {
+    document.getElementById('input-invest').value = state.investment.montant;
+    document.getElementById('input-open-date').value = state.investment.date;
+  }
+});
+
+function updatePreview() {
+  const ca = parseFloat(document.getElementById('input-ca').value) || 0;
+  const dep = parseFloat(document.getElementById('input-dep').value) || 0;
+  const ben = ca - dep;
+  const wrap = document.getElementById('preview-alloc');
+
+  if(!ca && !dep) {
+    wrap.innerHTML = `<div class="empty-state"><div class="big">✏️</div>Remplissez le formulaire</div>`;
+    return;
+  }
+
+  wrap.innerHTML = `
+    <div style="display:flex;gap:1.5rem;margin-bottom:1.25rem">
+      <div><div class="stat-label">CA</div><div class="stat-value orange" style="font-size:1.3rem">${fmtShort(ca)}</div></div>
+      <div><div class="stat-label">Dépenses</div><div class="stat-value" style="font-size:1.3rem">${fmtShort(dep)}</div></div>
+      <div><div class="stat-label">Bénéfice</div><div class="stat-value ${ben>=0?'green':'orange'}" style="font-size:1.3rem">${fmtShort(ben)}</div></div>
+    </div>
+    <div class="divider"></div>
+    ${allocHTML(ben)}
+  `;
+}
+
+function saveDayData() {
+  const date = document.getElementById('input-date').value;
+  const ca = parseFloat(document.getElementById('input-ca').value) || 0;
+  const dep = parseFloat(document.getElementById('input-dep').value) || 0;
+  const note = document.getElementById('input-note').value;
+
+  if(!date || ca <= 0) { toast('⚠️ Veuillez saisir une date et un CA valide', '#c0392b'); return; }
+
+  const benefice = ca - dep;
+  const alloc = getAlloc(benefice);
+
+  // Remove existing entry for that date
+  state.entries = state.entries.filter(e => e.date !== date);
+  state.entries.push({ date, ca, depenses: dep, benefice, alloc, note });
+  state.entries.sort((a,b) => b.date.localeCompare(a.date));
+  saveState();
+
+  toast('✅ Journée du ' + new Date(date).toLocaleDateString('fr-FR') + ' enregistrée !');
+  document.getElementById('input-ca').value = '';
+  document.getElementById('input-dep').value = '';
+  document.getElementById('input-note').value = '';
+  updatePreview();
+  updateDashboard();
+}
+
+// ===== DASHBOARD =====
+function updateDashboard() {
+  const entries = state.entries;
+  const t = today();
+
+  const todayEntry = entries.find(e => e.date === t);
+  if(todayEntry) {
+    document.getElementById('d-ca-today').textContent = fmtShort(todayEntry.ca);
+    document.getElementById('d-dep-today').textContent = fmtShort(todayEntry.depenses);
+    document.getElementById('d-ben-today').textContent = fmtShort(todayEntry.benefice);
+    document.getElementById('alloc-display').innerHTML = allocHTML(todayEntry.benefice);
+  } else {
+    document.getElementById('d-ca-today').textContent = '—';
+    document.getElementById('d-dep-today').textContent = '—';
+    document.getElementById('d-ben-today').textContent = '—';
+    document.getElementById('alloc-display').innerHTML = `<div class="empty-state"><div class="big">📝</div>Aucune saisie aujourd'hui</div>`;
+  }
+
+  document.getElementById('d-days-count').textContent = entries.length;
+
+  // This month
+  const ym = t.slice(0,7);
+  const monthEntries = entries.filter(e => e.date.startsWith(ym));
+  const caMonth = monthEntries.reduce((s,e) => s+e.ca, 0);
+  const benMonth = monthEntries.reduce((s,e) => s+e.benefice, 0);
+  document.getElementById('d-ca-month').textContent = entries.length ? fmtShort(caMonth) : '—';
+  document.getElementById('d-ben-month').textContent = entries.length ? fmtShort(benMonth) : '—';
+
+  // Total epargne
+  const totalEpargne = entries.reduce((s,e) => s+(e.alloc?.epargne||0), 0);
+  document.getElementById('d-epargne-total').textContent = entries.length ? fmtShort(totalEpargne) : '—';
+
+  // Mini chart - last 7 entries
+  const last7 = [...entries].slice(0, 7).reverse();
+  const chartWrap = document.getElementById('mini-chart-wrap');
+  if(last7.length === 0) {
+    chartWrap.innerHTML = `<div class="empty-state"><div class="big">📊</div>Aucune donnée</div>`;
+    return;
+  }
+  const maxCA = Math.max(...last7.map(e => e.ca), 1);
+  chartWrap.innerHTML = `
+    <div style="display:flex;gap:0.25rem;font-size:0.7rem;color:var(--text-muted);margin-bottom:0.25rem">
+      <span style="color:var(--terracotta)">■</span> CA &nbsp;<span style="color:var(--olive)">■</span> Bénéfice
+    </div>
+    <div class="chart-wrap">
+      ${last7.map(e => {
+        const hCA = Math.max((e.ca / maxCA) * 110, 4);
+        const hBen = Math.max((Math.max(e.benefice,0) / maxCA) * 110, 2);
+        const lbl = e.date.slice(5);
+        return `<div class="chart-bar-col">
+          <div class="chart-val">${Math.round(e.ca/1000)}k</div>
+          <div style="display:flex;align-items:flex-end;gap:2px;height:100px">
+            <div class="chart-bar" style="height:${hCA}px;background:var(--terracotta);opacity:0.7;flex:1"></div>
+            <div class="chart-bar" style="height:${hBen}px;background:var(--olive);flex:1"></div>
+          </div>
+          <div class="chart-label">${lbl}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+// ===== REPORTS =====
+function showReport(type) {
+  const entries = state.entries;
+  const t = today();
+  let filtered, title, subtitle;
+
+  if(type === 'day') {
+    filtered = entries.filter(e => e.date === t);
+    title = '📅 Rapport du Jour — ' + new Date(t).toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+    subtitle = 'Données de la journée en cours';
+  } else if(type === 'week') {
+    const d = new Date();
+    const day = d.getDay() || 7;
+    const mon = new Date(d); mon.setDate(d.getDate() - day + 1);
+    const monStr = mon.toISOString().split('T')[0];
+    filtered = entries.filter(e => e.date >= monStr && e.date <= t);
+    title = '📆 Rapport Hebdomadaire — Semaine en cours';
+    subtitle = `Du ${mon.toLocaleDateString('fr-FR')} au aujourd'hui`;
+  } else {
+    const ym = t.slice(0,7);
+    filtered = entries.filter(e => e.date.startsWith(ym));
+    title = '🗓️ Rapport Mensuel — ' + new Date(t).toLocaleDateString('fr-FR', {month:'long', year:'numeric'});
+    subtitle = 'Cumul du mois en cours';
+  }
+
+  const totalCA = filtered.reduce((s,e) => s+e.ca, 0);
+  const totalDep = filtered.reduce((s,e) => s+e.depenses, 0);
+  const totalBen = filtered.reduce((s,e) => s+e.benefice, 0);
+  const avgCA = filtered.length ? totalCA / filtered.length : 0;
+  const avgBen = filtered.length ? totalBen / filtered.length : 0;
+
+  const totalDette = filtered.reduce((s,e) => s+(e.alloc?.dette||0), 0);
+  const totalLoyer = filtered.reduce((s,e) => s+(e.alloc?.loyer||0), 0);
+  const totalSalaire = filtered.reduce((s,e) => s+(e.alloc?.salaire||0), 0);
+  const totalEpargne = filtered.reduce((s,e) => s+(e.alloc?.epargne||0), 0);
+  const totalPerso = filtered.reduce((s,e) => s+(e.alloc?.perso||0), 0);
+
+  const margeNet = totalCA > 0 ? (totalBen / totalCA * 100).toFixed(1) : 0;
+
+  document.getElementById('report-output').innerHTML = `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+        <div>
+          <div class="card-title" style="margin-bottom:0.25rem">${title}</div>
+          <div style="font-size:0.82rem;color:var(--text-muted)">${subtitle} · ${filtered.length} jour(s)</div>
+        </div>
+        <button class="btn btn-ghost" onclick="printReport()">🖨️ Imprimer</button>
+      </div>
+
+      <div class="grid-4" style="margin-bottom:1.5rem">
+        <div class="stat-card">
+          <div class="stat-label">Chiffre d'affaires</div>
+          <div class="stat-value orange" style="font-size:1.4rem">${fmtShort(totalCA)}</div>
+          <div class="stat-sub">Moy: ${fmtShort(avgCA)}/j</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Dépenses</div>
+          <div class="stat-value" style="font-size:1.4rem">${fmtShort(totalDep)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Bénéfice net</div>
+          <div class="stat-value green" style="font-size:1.4rem">${fmtShort(totalBen)}</div>
+          <div class="stat-sub">Moy: ${fmtShort(avgBen)}/j</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Marge nette</div>
+          <div class="stat-value gold" style="font-size:1.4rem">${margeNet}%</div>
+        </div>
+      </div>
+
+      <div class="card-title"><span class="icon">🥧</span> Répartition du bénéfice</div>
+      ${totalBen > 0 ? `
+        <div class="alloc-row"><div class="alloc-label">💳 Remb. dettes</div><div class="alloc-bar-wrap"><div class="alloc-bar" style="width:${state.params.dette}%;background:#E8A0A0"></div></div><div class="alloc-pct">${state.params.dette}%</div><div class="alloc-amount">${fmtShort(totalDette)}</div></div>
+        <div class="alloc-row"><div class="alloc-label">🏠 Location</div><div class="alloc-bar-wrap"><div class="alloc-bar" style="width:${state.params.loyer}%;background:#F4C882"></div></div><div class="alloc-pct">${state.params.loyer}%</div><div class="alloc-amount">${fmtShort(totalLoyer)}</div></div>
+        <div class="alloc-row"><div class="alloc-label">👩‍🍳 Salaires</div><div class="alloc-bar-wrap"><div class="alloc-bar" style="width:${state.params.salaire}%;background:#A0C4E8"></div></div><div class="alloc-pct">${state.params.salaire}%</div><div class="alloc-amount">${fmtShort(totalSalaire)}</div></div>
+        <div class="alloc-row"><div class="alloc-label">🏦 Épargne</div><div class="alloc-bar-wrap"><div class="alloc-bar" style="width:${state.params.epargne}%;background:#90C99A"></div></div><div class="alloc-pct">${state.params.epargne}%</div><div class="alloc-amount">${fmtShort(totalEpargne)}</div></div>
+        <div class="alloc-row"><div class="alloc-label">🛒 Besoins perso</div><div class="alloc-bar-wrap"><div class="alloc-bar" style="width:${state.params.perso}%;background:#C4A0E8"></div></div><div class="alloc-pct">${state.params.perso}%</div><div class="alloc-amount">${fmtShort(totalPerso)}</div></div>
+      ` : '<p style="color:var(--text-muted);font-size:0.875rem">Aucun bénéfice sur cette période</p>'}
+
+      ${filtered.length > 1 ? `
+        <div class="divider"></div>
+        <div class="card-title"><span class="icon">📋</span> Détail par jour</div>
+        <table>
+          <thead><tr><th>Date</th><th>Note</th><th class="td-right">CA</th><th class="td-right">Dépenses</th><th class="td-right">Bénéfice</th><th class="td-right">Épargne</th></tr></thead>
+          <tbody>
+            ${filtered.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(e => `
+              <tr>
+                <td>${new Date(e.date+'T12:00').toLocaleDateString('fr-FR')}</td>
+                <td style="color:var(--text-muted);font-size:0.8rem">${e.note||'—'}</td>
+                <td class="td-right" style="color:var(--terracotta)">${fmtShort(e.ca)}</td>
+                <td class="td-right">${fmtShort(e.depenses)}</td>
+                <td class="td-right" style="color:var(--olive)">${fmtShort(e.benefice)}</td>
+                <td class="td-right" style="color:var(--gold)">${fmtShort(e.alloc?.epargne||0)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      ` : ''}
+    </div>
+  `;
+}
+
+function updateHistory() {
+  const entries = state.entries;
+  const wrap = document.getElementById('history-table-wrap');
+  if(!entries.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="big">📖</div>Aucune donnée enregistrée</div>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <table>
+      <thead><tr><th>Date</th><th>Note</th><th class="td-right">CA</th><th class="td-right">Dépenses</th><th class="td-right">Bénéfice</th><th class="td-right">Épargne</th><th></th></tr></thead>
+      <tbody>
+        ${entries.map(e => `
+          <tr>
+            <td><strong>${new Date(e.date+'T12:00').toLocaleDateString('fr-FR')}</strong></td>
+            <td style="color:var(--text-muted);font-size:0.8rem">${e.note||'—'}</td>
+            <td class="td-right" style="color:var(--terracotta)">${fmtShort(e.ca)}</td>
+            <td class="td-right">${fmtShort(e.depenses)}</td>
+            <td class="td-right" style="color:${e.benefice>=0?'var(--olive)':'#c0392b'}">${fmtShort(e.benefice)}</td>
+            <td class="td-right" style="color:var(--gold)">${fmtShort(e.alloc?.epargne||0)}</td>
+            <td><button style="background:none;border:none;cursor:pointer;color:#c0392b;font-size:0.8rem" onclick="deleteEntry('${e.date}')">✕</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function deleteEntry(date) {
+  if(!confirm('Supprimer la saisie du ' + new Date(date+'T12:00').toLocaleDateString('fr-FR') + ' ?')) return;
+  state.entries = state.entries.filter(e => e.date !== date);
+  saveState();
+  updateHistory();
+  updateDashboard();
+  toast('🗑️ Saisie supprimée');
+}
+
+// ===== ROI =====
+function saveInvestment() {
+  state.investment = {
+    montant: parseFloat(document.getElementById('input-invest').value) || 0,
+    date: document.getElementById('input-open-date').value
+  };
+  saveState();
+  updateROI();
+  toast('✅ Investissement enregistré');
+}
+
+function updateROI() {
+  const inv = state.investment;
+  const entries = state.entries;
+  const roiWrap = document.getElementById('roi-display');
+  const predictWrap = document.getElementById('predict-display');
+
+  if(!inv.montant) {
+    roiWrap.innerHTML = `<div class="empty-state"><div class="big">💼</div>Renseignez l'investissement initial</div>`;
+    predictWrap.innerHTML = `<div class="empty-state"><div class="big">🔮</div>Données insuffisantes</div>`;
+    return;
+  }
+
+  const totalBen = entries.reduce((s,e) => s+Math.max(e.benefice,0), 0);
+  const roiPct = inv.montant > 0 ? (totalBen / inv.montant * 100).toFixed(1) : 0;
+  const roiBarW = Math.min(parseFloat(roiPct), 100);
+
+  // Days since opening
+  let daysSince = '—';
+  if(inv.date) {
+    const diff = (new Date() - new Date(inv.date)) / 86400000;
+    daysSince = Math.max(0, Math.round(diff)) + ' jours';
+  }
+
+  roiWrap.innerHTML = `
+    <div style="display:flex;gap:1.5rem;margin-bottom:1.25rem;flex-wrap:wrap">
+      <div><div class="stat-label">Investi</div><div class="stat-value orange" style="font-size:1.3rem">${fmtShort(inv.montant)}</div></div>
+      <div><div class="stat-label">Récupéré</div><div class="stat-value green" style="font-size:1.3rem">${fmtShort(totalBen)}</div></div>
+      <div><div class="stat-label">Ouverture il y a</div><div class="stat-value" style="font-size:1.1rem">${daysSince}</div></div>
+    </div>
+    <div class="stat-label">ROI actuel</div>
+    <div class="stat-value gold" style="font-size:2rem;margin-bottom:0.5rem">${roiPct}%</div>
+    <div class="roi-bar-wrap"><div class="roi-bar" style="width:${roiBarW}%"></div></div>
+    <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.25rem">${roiBarW >= 100 ? '🎉 Investissement remboursé !' : `${roiBarW.toFixed(0)}% du capital récupéré`}</div>
+  `;
+
+  // Prediction
+  if(entries.length < 3) {
+    predictWrap.innerHTML = `<div class="empty-state"><div class="big">📅</div>Enregistrez au moins 3 jours pour obtenir une prévision</div>`;
+    return;
+  }
+
+  const avgDailyBen = entries.slice(0,30).reduce((s,e)=>s+Math.max(e.benefice,0),0) / Math.min(entries.length,30);
+  const avgMonthlyEpargne = avgDailyBen * 26 * (state.params.epargne / 100); // ~26 jours ouvrables
+  const cible = inv.montant; // Même investissement pour 2ème restaurant
+  const totalEpargneActuelle = entries.reduce((s,e)=>s+(e.alloc?.epargne||0),0);
+
+  const months = [];
+  let cumul = totalEpargneActuelle;
+  let targetMonth = null;
+  for(let m=1; m<=12; m++) {
+    cumul += avgMonthlyEpargne;
+    const reached = cumul >= cible;
+    if(reached && !targetMonth) targetMonth = m;
+    months.push({ m, cumul: Math.min(cumul, cible*1.2), reached, target: !reached && m===12 });
+  }
+
+  const pctAtteint = Math.min((totalEpargneActuelle + avgMonthlyEpargne*12) / cible * 100, 100).toFixed(0);
+
+  predictWrap.innerHTML = `
+    <div class="grid-3" style="margin-bottom:1.5rem">
+      <div class="stat-card">
+        <div class="stat-label">Épargne mensuelle prévue</div>
+        <div class="stat-value green" style="font-size:1.2rem">${fmtShort(avgMonthlyEpargne)}</div>
+        <div class="stat-sub">Basé sur ${Math.min(entries.length,30)} jours</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Capital cible (2ème resto)</div>
+        <div class="stat-value orange" style="font-size:1.2rem">${fmtShort(cible)}</div>
+        <div class="stat-sub">= investissement initial</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Épargne actuelle</div>
+        <div class="stat-value gold" style="font-size:1.2rem">${fmtShort(totalEpargneActuelle)}</div>
+        <div class="stat-sub">${(totalEpargneActuelle/cible*100).toFixed(1)}% de l'objectif</div>
+      </div>
+    </div>
+
+    ${targetMonth ? `
+      <div style="background:#e6f4ea;border:1px solid #90C99A;border-radius:10px;padding:1rem;margin-bottom:1rem;font-size:0.875rem;color:var(--olive)">
+        🎉 <strong>Objectif atteint en ~${targetMonth} mois !</strong> Vous pourrez ouvrir votre 2ème restaurant dans moins d'un an.
+      </div>
+    ` : `
+      <div style="background:#fef0e8;border:1px solid #F4C882;border-radius:10px;padding:1rem;margin-bottom:1rem;font-size:0.875rem;color:var(--terracotta-dark)">
+        📈 Avec le rythme actuel, vous atteindrez <strong>${pctAtteint}%</strong> de l'objectif en 12 mois. Continuez !
+      </div>
+    `}
+
+    <div style="font-size:0.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem">Projection mois par mois</div>
+    <div class="predict-timeline">
+      ${months.map(({m, cumul: c, reached, target}) => `
+        <div class="predict-month ${reached?'reached':''} ${m===targetMonth?'target':''}">
+          <div class="pm-dot"></div>
+          <div class="pm-label">M${m}</div>
+          <div class="pm-savings">${Math.round(c/1000)}k</div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.5rem">
+      🟡 Mois cible · 🟢 Objectif atteint · Valeurs en milliers FCFA
+    </div>
+  `;
+}
+
+// ===== PARAMS =====
+function loadParams() {
+  const p = state.params;
+  document.getElementById('p-dette').value = p.dette;
+  document.getElementById('p-loyer').value = p.loyer;
+  document.getElementById('p-salaire').value = p.salaire;
+  document.getElementById('p-epargne').value = p.epargne;
+  document.getElementById('p-perso').value = p.perso;
+  checkParams();
+}
+
+function checkParams() {
+  const total = ['p-dette','p-loyer','p-salaire','p-epargne','p-perso']
+    .reduce((s,id) => s + (parseFloat(document.getElementById(id).value)||0), 0);
+  const el = document.getElementById('pct-check');
+  if(Math.abs(total-100) < 0.01) {
+    el.innerHTML = `<span style="color:var(--olive)">✅ Total : 100% — Correct !</span>`;
+  } else {
+    el.innerHTML = `<span style="color:#c0392b">⚠️ Total : ${total}% — Doit être égal à 100%</span>`;
+  }
+}
+
+function saveParams() {
+  const total = ['p-dette','p-loyer','p-salaire','p-epargne','p-perso']
+    .reduce((s,id) => s + (parseFloat(document.getElementById(id).value)||0), 0);
+  if(Math.abs(total-100) > 0.01) { toast('⚠️ Le total doit être égal à 100%', '#c0392b'); return; }
+
+  state.params = {
+    dette: parseFloat(document.getElementById('p-dette').value),
+    loyer: parseFloat(document.getElementById('p-loyer').value),
+    salaire: parseFloat(document.getElementById('p-salaire').value),
+    epargne: parseFloat(document.getElementById('p-epargne').value),
+    perso: parseFloat(document.getElementById('p-perso').value),
+  };
+  // Recalculate all allocations
+  state.entries = state.entries.map(e => ({...e, alloc: getAlloc(e.benefice)}));
+  saveState();
+  toast('✅ Paramètres sauvegardés !');
+  updateDashboard();
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'bistrobiz_' + today() + '.json';
+  a.click();
+  toast('📤 Export téléchargé');
+}
+
+function clearData() {
+  state = { entries: [], params: {dette:40,loyer:10,salaire:10,epargne:20,perso:20}, investment:{montant:0,date:''} };
+  saveState();
+  updateDashboard();
+  loadParams();
+  toast('🗑️ Données effacées', '#c0392b');
+}
+
+function printReport() {
+  window.print();
+}
+
+// ========== SYSTÈME D'AUTHENTIFICATION ==========
+
+const AUTH_KEY = 'ks_auth_users';
+const SESSION_KEY = 'ks_auth_session';
+
+// Hash simple (pour localStorage — NE PAS utiliser en prod sans bcrypt côté serveur)
+function simpleHash(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return hash.toString(36);
+}
+
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem(AUTH_KEY)) || []; } catch(e) { return []; }
+}
+function saveUsers(users) {
+  localStorage.setItem(AUTH_KEY, JSON.stringify(users));
+}
+
+function getSession() {
+  try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch(e) { return null; }
+}
+function saveSession(user) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ username: user.username, role: user.role }));
+}
+function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
+}
+
+// Initialise le compte superAdmin si aucun utilisateur n'existe
+function initAuth() {
+  let users = getUsers();
+  if (users.length === 0) {
+    users = [{
+      username: 'superadmin',
+      password: simpleHash('Admin@2025'),
+      role: 'superAdmin',
+      created: new Date().toISOString()
+    }];
+    saveUsers(users);
+  }
+}
+
+function doLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  const users = getUsers();
+  const user = users.find(u => u.username === username && u.password === simpleHash(password));
+
+  if (!user) {
+    document.getElementById('auth-error').style.display = 'block';
+    document.getElementById('login-password').value = '';
+    return;
+  }
+
+  document.getElementById('auth-error').style.display = 'none';
+  saveSession(user);
+  applySession(user);
+  document.getElementById('auth-overlay').classList.add('hidden');
+}
+
+function doLogout() {
+  if (!confirm('Se déconnecter ?')) return;
+  clearSession();
+  location.reload();
+}
+
+function applySession(user) {
+  document.getElementById('header-username').textContent = user.username;
+  const roleLabels = { superAdmin: 'Super Admin', admin: 'Admin', user: 'Utilisateur' };
+  document.getElementById('header-role').textContent = roleLabels[user.role] || user.role;
+
+  // Afficher l'onglet utilisateurs pour superAdmin
+  if (user.role === 'superAdmin') {
+    document.getElementById('tab-btn-users').style.display = '';
+  }
+
+  // Restreindre certains onglets selon le rôle
+  if (user.role === 'user') {
+    document.querySelectorAll('.nav-tab').forEach(btn => {
+      if (btn.textContent.includes('Saisie') || btn.textContent.includes('Paramètres')) {
+        btn.style.display = 'none';
+      }
+    });
+  }
+}
+
+// ===== GESTION DES COMPTES (superAdmin) =====
+function renderUsersList() {
+  const users = getUsers();
+  const session = getSession();
+  const wrap = document.getElementById('users-list');
+  if (!wrap) return;
+
+  if (users.length === 0) {
+    wrap.innerHTML = '<div class="empty-state">Aucun utilisateur</div>';
+    return;
+  }
+
+  const roleLabels = { superAdmin: '⭐ Super Admin', admin: '🔑 Admin', user: '👤 Utilisateur' };
+  wrap.innerHTML = users.map(u => `
+    <div class="user-table-row">
+      <div style="font-weight:600">${u.username}</div>
+      <div><span class="badge ${u.role==='superAdmin'?'badge-orange':u.role==='admin'?'badge-green':'badge-red'}">${roleLabels[u.role]||u.role}</span></div>
+      <div><span class="badge badge-green">Actif</span></div>
+      <div>
+        ${u.username !== session?.username ? `<button class="btn-danger" onclick="deleteUser('${u.username}')">Supprimer</button>` : '<span style="font-size:0.75rem;color:var(--text-muted)">Vous</span>'}
+      </div>
+    </div>
+  `).join('');
+}
+
+function openModal() {
+  document.getElementById('modal-create-user').classList.remove('hidden');
+  document.getElementById('new-username').value = '';
+  document.getElementById('new-password').value = '';
+  document.getElementById('new-role').value = 'user';
+}
+function closeModal() {
+  document.getElementById('modal-create-user').classList.add('hidden');
+}
+
+function createUser() {
+  const username = document.getElementById('new-username').value.trim();
+  const password = document.getElementById('new-password').value;
+  const role = document.getElementById('new-role').value;
+
+  if (!username || !password) { toast('⚠️ Remplissez tous les champs', '#c0392b'); return; }
+  if (username.length < 3) { toast('⚠️ Nom d\'utilisateur trop court (min. 3 caractères)', '#c0392b'); return; }
+  if (password.length < 6) { toast('⚠️ Mot de passe trop court (min. 6 caractères)', '#c0392b'); return; }
+
+  const users = getUsers();
+  if (users.find(u => u.username === username)) {
+    toast('⚠️ Ce nom d\'utilisateur existe déjà', '#c0392b'); return;
+  }
+
+  users.push({ username, password: simpleHash(password), role, created: new Date().toISOString() });
+  saveUsers(users);
+  closeModal();
+  renderUsersList();
+  toast(`✅ Compte "${username}" créé avec le rôle ${role}`);
+}
+
+function deleteUser(username) {
+  if (!confirm(`Supprimer le compte "${username}" ?`)) return;
+  let users = getUsers();
+  users = users.filter(u => u.username !== username);
+  saveUsers(users);
+  renderUsersList();
+  toast(`🗑️ Compte "${username}" supprimé`);
+}
+
+// ===== INIT AUTH AU CHARGEMENT =====
+(function() {
+  initAuth();
+  const session = getSession();
+  if (session) {
+    applySession(session);
+    document.getElementById('auth-overlay').classList.add('hidden');
+  }
+})();
+
+</script>
+</body>
+</html>
