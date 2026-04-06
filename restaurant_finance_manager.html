@@ -55,6 +55,13 @@ main{max-width:1100px;margin:0 auto;padding:2rem 1.5rem}
 .stat-value.green{color:var(--olive)}.stat-value.orange{color:var(--terracotta)}
 .stat-value.gold{color:var(--gold)}.stat-value.red{color:#c0392b}
 .stat-sub{font-size:.78rem;color:var(--text-muted);margin-top:.25rem}
+/* Filtre dashboard */
+.dash-filter-wrap{display:flex;gap:.5rem;margin-bottom:1.25rem}
+.dash-filter-btn{padding:.45rem 1.1rem;border-radius:20px;border:1.5px solid var(--border);
+  background:var(--card-bg);color:var(--text-muted);font-family:'DM Sans',sans-serif;
+  font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s}
+.dash-filter-btn.active{background:var(--chocolate);color:#fff;border-color:var(--chocolate)}
+.dash-filter-btn:hover:not(.active){border-color:var(--terracotta);color:var(--terracotta)}
 /* FORM */
 .form-group{margin-bottom:1.25rem}
 label{display:block;font-size:.82rem;font-weight:600;color:var(--text-muted);
@@ -425,11 +432,17 @@ tr:hover td{background:var(--cream)}
 
   <!-- Dashboard admin/superAdmin -->
   <div id="dashboard-full">
+    <!-- Filtre période -->
+    <div class="dash-filter-wrap">
+      <button class="dash-filter-btn active" data-f="month" onclick="setDashFilter('month')">📅 Ce mois</button>
+      <button class="dash-filter-btn" data-f="7d" onclick="setDashFilter('7d')">📆 7 derniers jours</button>
+    </div>
+
     <div class="grid-4" style="margin-bottom:1.5rem">
-      <div class="stat-card"><div class="stat-label">CA Aujourd'hui</div><div class="stat-value orange" id="d-ca-today">—</div><div class="stat-sub">Chiffre d'affaires</div></div>
-      <div class="stat-card"><div class="stat-label">Dépenses</div><div class="stat-value" id="d-dep-today">—</div><div class="stat-sub">Charges du jour</div></div>
-      <div class="stat-card"><div class="stat-label">Bénéfice Net</div><div class="stat-value green" id="d-ben-today">—</div><div class="stat-sub">CA – Dépenses</div></div>
-      <div class="stat-card"><div class="stat-label">Jours enregistrés</div><div class="stat-value gold" id="d-days-count">0</div><div class="stat-sub">Historique</div></div>
+      <div class="stat-card"><div class="stat-label" id="d-label-ca">CA ce mois</div><div class="stat-value orange" id="d-ca-today">—</div><div class="stat-sub" id="d-sub-ca">Total du mois</div></div>
+      <div class="stat-card"><div class="stat-label" id="d-label-dep">Dépenses</div><div class="stat-value" id="d-dep-today">—</div><div class="stat-sub" id="d-sub-dep">Total du mois</div></div>
+      <div class="stat-card"><div class="stat-label" id="d-label-ben">Bénéfice Net</div><div class="stat-value green" id="d-ben-today">—</div><div class="stat-sub" id="d-sub-ben">CA – Dépenses</div></div>
+      <div class="stat-card"><div class="stat-label" id="d-label-days">Jours ce mois</div><div class="stat-value gold" id="d-days-count">0</div><div class="stat-sub" id="d-sub-days">Jours enregistrés</div></div>
     </div>
     <div class="grid-2" style="margin-bottom:1.5rem">
       <div class="card">
@@ -437,15 +450,14 @@ tr:hover td{background:var(--cream)}
         <div id="alloc-display"><div class="empty-state"><div class="big">📝</div>Saisissez les données du jour</div></div>
       </div>
       <div class="card">
-        <!-- ===== MAJ v1.2 — Graphique 7j + moyenne mobile 30j ===== -->
-        <div class="card-title"><span>📈</span> Évolution — 7 derniers jours</div>
+        <div class="card-title"><span>📈</span> <span id="chart-title">Évolution — Ce mois</span></div>
         <div id="mini-chart-wrap"><div class="empty-state"><div class="big">📊</div>Aucune donnée</div></div>
       </div>
     </div>
     <div class="grid-3">
-      <div class="stat-card"><div class="stat-label">CA ce mois</div><div class="stat-value orange" id="d-ca-month">—</div></div>
-      <div class="stat-card"><div class="stat-label">Bénéfice ce mois</div><div class="stat-value green" id="d-ben-month">—</div></div>
-      <div class="stat-card"><div class="stat-label">Épargne cumulée</div><div class="stat-value gold" id="d-epargne-total">—</div><div class="stat-sub">Vers 2ème restaurant</div></div>
+      <div class="stat-card"><div class="stat-label">Marge nette</div><div class="stat-value gold" id="d-marge">—</div><div class="stat-sub" id="d-sub-marge">Bénéfice / CA</div></div>
+      <div class="stat-card"><div class="stat-label">Moyenne CA/jour</div><div class="stat-value orange" id="d-ca-avg">—</div><div class="stat-sub">Sur la période</div></div>
+      <div class="stat-card"><div class="stat-label">Épargne cumulée</div><div class="stat-value" id="d-epargne-total">—</div><div class="stat-sub">Vers 2ème restaurant</div></div>
     </div>
   </div>
 
@@ -666,6 +678,12 @@ let state = {
   fixedCharges: { loyer:0, salaires:0, abonnements:0 },
   dailyTarget:  0
 };
+let dashFilter = 'month'; // 'month' | '7d'
+function setDashFilter(f) {
+  dashFilter = f;
+  document.querySelectorAll('.dash-filter-btn').forEach(b => b.classList.toggle('active', b.dataset.f === f));
+  updateDashboard();
+}
 
 function loadState() {
   try {
@@ -953,34 +971,77 @@ function updateDashboard() {
     return;
   }
 
-  // Admin/superAdmin
-  if (todayEntry) {
-    document.getElementById('d-ca-today').textContent  = fmtShort(todayEntry.ca);
-    document.getElementById('d-dep-today').textContent = fmtShort(todayEntry.depenses);
-    document.getElementById('d-ben-today').textContent = fmtShort(todayEntry.benefice);
-    document.getElementById('d-ben-today').className   = 'stat-value '+(todayEntry.benefice>=0?'green':'red');
-    document.getElementById('alloc-display').innerHTML = allocHTML(todayEntry.benefice);
-    const ratio = todayEntry.ca>0 ? todayEntry.depenses/todayEntry.ca : 0;
+  // Admin/superAdmin — calcul selon filtre période
+  const is7d = dashFilter === '7d';
+  const ym = t.slice(0,7);
+  const filteredE = is7d
+    ? entries.slice(0, 7)
+    : entries.filter(e => e.date.startsWith(ym));
+
+  const totalCA  = filteredE.reduce((s,e)=>s+e.ca, 0);
+  const totalDep = filteredE.reduce((s,e)=>s+e.depenses, 0);
+  const totalBen = filteredE.reduce((s,e)=>s+e.benefice, 0);
+  const marge    = totalCA>0 ? Math.round(totalBen/totalCA*100) : 0;
+  const avgCA    = filteredE.length>0 ? Math.round(totalCA/filteredE.length) : 0;
+  const periodLabel = is7d ? '7 derniers jours' : 'Ce mois';
+
+  // Labels dynamiques
+  document.getElementById('d-label-ca').textContent   = 'CA — '+periodLabel;
+  document.getElementById('d-label-dep').textContent  = 'Dépenses — '+periodLabel;
+  document.getElementById('d-label-ben').textContent  = 'Bénéfice Net';
+  document.getElementById('d-label-days').textContent = is7d ? 'Jours (7j)' : 'Jours ce mois';
+  document.getElementById('d-sub-ca').textContent     = is7d ? 'Cumul 7j' : 'Cumul mensuel';
+  document.getElementById('d-sub-dep').textContent    = is7d ? 'Cumul 7j' : 'Cumul mensuel';
+
+  if (filteredE.length) {
+    document.getElementById('d-ca-today').textContent  = fmtShort(totalCA);
+    document.getElementById('d-dep-today').textContent = fmtShort(totalDep);
+    document.getElementById('d-ben-today').textContent = fmtShort(totalBen);
+    document.getElementById('d-ben-today').className   = 'stat-value '+(totalBen>=0?'green':'red');
+    document.getElementById('d-marge').textContent     = marge+'%';
+    document.getElementById('d-marge').className       = 'stat-value '+(marge>=20?'gold':marge>=0?'orange':'red');
+    document.getElementById('d-ca-avg').textContent    = fmtShort(avgCA);
+  } else {
+    ['d-ca-today','d-dep-today','d-ben-today','d-marge','d-ca-avg'].forEach(id=>{
+      document.getElementById(id).textContent='—';
+    });
+    document.getElementById('d-ben-today').className='stat-value green';
+    document.getElementById('d-marge').className='stat-value gold';
+  }
+
+  document.getElementById('d-days-count').textContent = filteredE.length;
+  document.getElementById('d-epargne-total').textContent = entries.length
+    ? fmtShort(entries.reduce((s,e)=>s+(e.alloc?.epargne||0),0)) : '—';
+
+  // Répartition bénéfice : entrée la plus récente de la période
+  const latestEntry = filteredE[0] || null;
+  if (latestEntry) {
+    document.getElementById('alloc-display').innerHTML = allocHTML(latestEntry.benefice);
+    const ratio = latestEntry.ca>0 ? latestEntry.depenses/latestEntry.ca : 0;
     document.getElementById('alert-expenses').classList.toggle('hidden', ratio<=0.70);
   } else {
-    ['d-ca-today','d-dep-today','d-ben-today'].forEach(id=>document.getElementById(id).textContent='—');
-    document.getElementById('d-ben-today').className='stat-value green';
-    document.getElementById('alloc-display').innerHTML=`<div class="empty-state"><div class="big">📝</div>Aucune saisie aujourd'hui</div>`;
+    document.getElementById('alloc-display').innerHTML=`<div class="empty-state"><div class="big">📝</div>Aucune saisie sur cette période</div>`;
     document.getElementById('alert-expenses').classList.add('hidden');
   }
-  document.getElementById('d-days-count').textContent = entries.length;
-  const ym=t.slice(0,7), mE=entries.filter(e=>e.date.startsWith(ym));
-  document.getElementById('d-ca-month').textContent  = entries.length ? fmtShort(mE.reduce((s,e)=>s+e.ca,0)) : '—';
-  document.getElementById('d-ben-month').textContent = entries.length ? fmtShort(mE.reduce((s,e)=>s+e.benefice,0)) : '—';
-  document.getElementById('d-epargne-total').textContent = entries.length ? fmtShort(entries.reduce((s,e)=>s+(e.alloc?.epargne||0),0)) : '—';
 
-  // ===== MAJ v1.2 — Graphique 7j + moyenne mobile 30j =====
-  const last7=entries.slice(0,7).reverse(), last30=entries.slice(0,30);
-  const wrap=document.getElementById('mini-chart-wrap');
-  if (!last7.length) { wrap.innerHTML=`<div class="empty-state"><div class="big">📊</div>Aucune donnée</div>`; return; }
-  const maxCA=Math.max(...last7.map(e=>e.ca),1);
-  const avg30=last30.length>=3 ? last30.reduce((s,e)=>s+e.ca,0)/last30.length : 0;
-  const maBottom=avg30>0 ? Math.max((avg30/maxCA)*110,4) : 0;
+  // Graphique : 7j ou mois en cours
+  const chartTitle = document.getElementById('chart-title');
+  const wrap = document.getElementById('mini-chart-wrap');
+  const last30 = entries.slice(0,30);
+  const avg30  = last30.length>=3 ? last30.reduce((s,e)=>s+e.ca,0)/last30.length : 0;
+
+  let chartData;
+  if (is7d) {
+    chartTitle.textContent = 'Évolution — 7 derniers jours';
+    chartData = entries.slice(0,7).reverse();
+  } else {
+    chartTitle.textContent = 'Évolution — Ce mois';
+    chartData = filteredE.slice().reverse();
+  }
+
+  if (!chartData.length) { wrap.innerHTML=`<div class="empty-state"><div class="big">📊</div>Aucune donnée</div>`; return; }
+  const maxCA = Math.max(...chartData.map(e=>e.ca),1);
+  const maBottom = avg30>0 ? Math.max((avg30/maxCA)*110,4) : 0;
   wrap.innerHTML=`
     <div style="display:flex;gap:.35rem;font-size:.7rem;color:var(--text-muted);margin-bottom:.25rem;align-items:center;flex-wrap:wrap">
       <span style="color:var(--terracotta)">■</span> CA &nbsp;<span style="color:var(--olive)">■</span> Bénéfice
@@ -988,7 +1049,7 @@ function updateDashboard() {
     </div>
     <div class="chart-wrap">
       ${avg30>0?`<div class="ma-line" style="bottom:${maBottom}px"></div>`:''}
-      ${last7.map(e=>{
+      ${chartData.map(e=>{
         const hCA=Math.max((e.ca/maxCA)*110,4), hBen=Math.max((Math.max(e.benefice,0)/maxCA)*110,2);
         return `<div class="chart-bar-col">
           <div class="chart-val">${Math.round(e.ca/1000)}k</div>
