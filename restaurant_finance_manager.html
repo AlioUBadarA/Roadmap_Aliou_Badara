@@ -106,7 +106,7 @@ tr:hover td{background:var(--cream)}
 .badge-orange{background:#fef0e8;color:var(--terracotta)}
 .badge-blue{background:#e8f0fe;color:#1a6fa0}
 /* CHART */
-.chart-wrap{display:flex;align-items:flex-end;gap:8px;height:120px;padding-top:1rem;position:relative}
+.chart-wrap{display:flex;align-items:flex-end;gap:8px;height:140px;padding-top:1.5rem;position:relative;overflow:visible}
 .chart-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
 .chart-bar{width:100%;border-radius:6px 6px 0 0;transition:height .5s ease;cursor:pointer;min-height:4px}
 .chart-bar:hover{opacity:.8}
@@ -1041,23 +1041,27 @@ function updateDashboard() {
 
   if (!chartData.length) { wrap.innerHTML=`<div class="empty-state"><div class="big">📊</div>Aucune donnée</div>`; return; }
   const maxCA = Math.max(...chartData.map(e=>e.ca),1);
-  const maBottom = avg30>0 ? Math.max((avg30/maxCA)*110,4) : 0;
+  const maBottom = avg30>0 ? Math.max((avg30/maxCA)*80,4) : 0;
+  // En mode mois : masquer val/label si trop de barres (>10)
+  const dense = chartData.length > 10;
+  const labelEvery = chartData.length > 20 ? 5 : chartData.length > 10 ? 3 : 1;
   wrap.innerHTML=`
     <div style="display:flex;gap:.35rem;font-size:.7rem;color:var(--text-muted);margin-bottom:.25rem;align-items:center;flex-wrap:wrap">
       <span style="color:var(--terracotta)">■</span> CA &nbsp;<span style="color:var(--olive)">■</span> Bénéfice
       ${avg30>0?`&nbsp;<span style="color:var(--gold)">---</span> Moy.30j (${Math.round(avg30/1000)}k)`:''}
     </div>
-    <div class="chart-wrap">
+    <div class="chart-wrap" style="gap:${dense?'3px':'8px'}">
       ${avg30>0?`<div class="ma-line" style="bottom:${maBottom}px"></div>`:''}
-      ${chartData.map(e=>{
-        const hCA=Math.max((e.ca/maxCA)*110,4), hBen=Math.max((Math.max(e.benefice,0)/maxCA)*110,2);
-        return `<div class="chart-bar-col">
-          <div class="chart-val">${Math.round(e.ca/1000)}k</div>
-          <div style="display:flex;align-items:flex-end;gap:2px;height:110px">
-            <div class="chart-bar" style="height:${hCA}px;background:var(--terracotta);opacity:.75;flex:1"></div>
-            <div class="chart-bar" style="height:${hBen}px;background:var(--olive);flex:1"></div>
+      ${chartData.map((e,i)=>{
+        const hCA=Math.max((e.ca/maxCA)*80,4), hBen=Math.max((Math.max(e.benefice,0)/maxCA)*80,2);
+        const showLabel = (i % labelEvery === 0);
+        return `<div class="chart-bar-col" style="min-width:0">
+          <div class="chart-val" style="${dense||!showLabel?'visibility:hidden':''}">${Math.round(e.ca/1000)}k</div>
+          <div style="display:flex;align-items:flex-end;gap:${dense?'1px':'2px'};height:80px">
+            <div class="chart-bar" style="height:${hCA}px;background:var(--terracotta);opacity:.75;flex:1;min-width:${dense?'3px':'6px'}"></div>
+            <div class="chart-bar" style="height:${hBen}px;background:var(--olive);flex:1;min-width:${dense?'2px':'5px'}"></div>
           </div>
-          <div class="chart-label">${e.date.slice(5)}</div>
+          <div class="chart-label" style="${!showLabel?'visibility:hidden':''};">${e.date.slice(5)}</div>
         </div>`;
       }).join('')}
     </div>`;
